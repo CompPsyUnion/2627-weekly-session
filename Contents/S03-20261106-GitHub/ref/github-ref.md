@@ -2,9 +2,9 @@
 
 准备一个 playground 仓库（如 `CompPsyUnion/github-playground`），预置：
 
-- `README.md`（门面）；课堂练习是每人往仓库新增一个 `<自己的 GitHub 用户名>.md` 文件（互不冲突）。
-- 一个最简 `.github/workflows/lint.yml`（对 markdown 跑 markdownlint）——让每个 PR 自动出现 Checks 绿勾/红叉。
-- `docs/index.html`（一个极简页面）——让每个人开启 Pages 后立刻有线上网址。
+- `README.md`（门面）；课堂练习是每人往 `profiles/` 目录新增一个 `<自己的 GitHub 用户名>.md` 文件（互不冲突）。
+- 一个自制 CI workflow：**检测 `profiles/` 目录**——校验每人恰好一个以自己用户名命名的文件、内容非空等——让每个 PR 自动出现 Checks 绿勾/红叉。
+- Pages 已配好一套漂亮的主题模板（`docs/` 或主题分支）——开启后立刻是一个好看的站点，而不是白纸。
 - Settings：允许 fork、Issues 开放、Actions 对 fork 可见。
 
 ---
@@ -79,10 +79,10 @@
 
 网页操作（两条路，演示第一条即可）：
 
-- 路线一（新建文件）：文件列表页 **Add file → Create new file** → 输入文件名 `<你的 GitHub 用户名>.md` → 写两三行自我介绍 → **Commit changes** 对话框里选 **"Create a new branch for this commit"**，填分支名（如 `docs/add-<你的用户名>`）→ Commit——网页顺便就把分支建好了。
+- 路线一（新建文件）：文件列表页进入 `profiles/` 目录 → **Add file → Create new file** → 输入文件名 `<你的 GitHub 用户名>.md` → 写两三行自我介绍 → **Commit changes** 对话框里选 **"Create a new branch for this commit"**，填分支名（如 `add-<你的用户名>`）→ Commit——网页顺便就把分支建好了。
 - 路线二：先在分支下拉框输入新分支名 → "Create branch from main" → 再进分支新建文件。
 
-每个人动手：fork playground，从新分支**新建名为自己 GitHub 用户名的 `<用户名>.md`**（写两三行自我介绍），commit。每人一个独立文件——几十个人的 PR 互不冲突，还能逐个 review。
+每个人动手：fork playground，从新分支在 `profiles/` 下**新建名为自己 GitHub 用户名的 `<用户名>.md`**（写两三行自我介绍），commit。每人一个独立文件——几十个人的 PR 互不冲突，还能逐个 review。
 
 **Fork 是“先抄回家”，Branch 是“一件修改一条支线”，Commit 是“存档一次”。**
 
@@ -130,9 +130,9 @@
 需求出现：刚才 PR 页面那个 Checks 标签是什么？为什么有的 PR 有绿勾、有的红叉？
 
 - **GitHub Actions** = 仓库里的机器人：定义好"什么时候干什么"（触发事件 + 脚本），它就自动执行。
-- 我们的 playground 预置了一个 workflow：**每次 PR 自动对 markdown 跑 markdownlint**——刚才每个 PR 的 Checks 里那个绿勾，就是它跑完的痕迹。
+- 我们的 playground 预置了一个**自制 CI**：每次 PR 自动**检查 `profiles/` 目录**——你提交的文件是不是以你的用户名命名、内容是否非空——刚才每个 PR 的 Checks 里那个绿勾，就是它跑完的痕迹。规则是我们自己写的几行脚本，不是什么高深工具。
 - 每人动手：进自己 fork → **Actions** 标签页 → 看到一条条运行记录 → 点开一条，看每一步日志（机器人也是一步步干活的）。
-- 故意制造红叉（演示）：讲师对一个写了烂格式的 PR 展示红叉 ❌ 与报错日志——**红叉不是惩罚，是机器人提前拦住了问题**。
+- 故意制造红叉（演示）：讲师对犯规的 PR（如文件名乱写/内容为空）展示红叉 ❌ 与报错日志——**红叉不是惩罚，是机器人提前拦住了问题**。
 - 一句话边界：写 workflow（YAML）属于进阶，今天只当它的雇主，不当它的程序员。
 
 **Actions 是 7×24 在岗的同事：你提 PR，它先帮你检查一遍。**
@@ -142,12 +142,13 @@
 需求出现：写了个网页/文档，想让别人看个链接而不是整个仓库？
 
 - **GitHub Pages** = 免费静态网站托管：把仓库的某个分支/目录发布成网址。
-- 每人动手（fork 里已预置 `docs/index.html`）：
+- playground 已配好一套现成的主题模板——开出来就是一个排版好看的站点。
+- 每人动手（fork 里已预置主题页面）：
   1. 自己的 fork → **Settings → Pages**。
   2. Source 选 `main` 分支 + `/docs` 目录 → **Save**。
   3. 等 1–2 分钟，刷新出线网址：`https://<用户名>.github.io/github-playground/`。
 - 现场互访：把网址发到群里，访问同桌的站点。
-- 一句话延伸：把 `index.html` 换成自己的简历页/项目主页，就是免费的个人网站（Jekyll/静态框架都支持，课后玩）。
+- 一句话延伸：主题模板换成自己的内容，就是免费的漂亮个人网站（简历/项目主页；Jekyll/静态框架都支持，课后玩）。
 
 **Pages 让仓库从"给人看的代码"变成"给世界看的网站"。**
 
@@ -155,10 +156,10 @@
 
 最终练习（5 分钟内完成的轻量闭环，把功能串成一条线）：
 
-1. 在自己 fork 里**先建新分支**，再改 `docs/index.html`（加一行自己的名字/一句话）→ commit。
+1. 在自己 fork 里**先建新分支**，再改 `docs/` 里的页面内容（主题里加一行自己的名字/一句话）→ commit。
 2. 向**自己的仓库**发一个 PR（base 选自己仓库的 `main`，compare 选新分支——仓库内部的分支合并也是 PR）。
 3. 观察：PR 的 Checks 里 Actions 又自动跑了一遍；merge 后 **Pages 网站自动更新**——改了网站，机器人先检查，检查过了自动上线。
-4. 讲师现场指向上游：你们的 PR（每人一个 `<用户名>.md`）已经全部 merge、关联的 issue 已自动关闭——刷新个人主页，今天的绿格子亮了。
+4. 讲师现场指向上游：你们的 PR（每人 `profiles/` 一个 `<用户名>.md`）已经全部 merge、关联的 issue 已自动关闭——刷新个人主页，今天的绿格子亮了。
 
 收尾四问：
 
@@ -209,7 +210,7 @@
 | --- | --- | --- |
 | 0–5 min | 不止是存代码 | 明星仓库漫游；今天的问题：怎么给陌生人贡献代码 |
 | 5–12 min | Issues | 提一个真实 issue；Label/Assignee/Milestone 一句话 |
-| 12–19 min | Fork & Branch | 复制到自己家；改前先建分支；网页新建 `<用户名>.md` 并 commit |
+| 12–19 min | Fork & Branch | 复制到自己家；改前先建分支；网页在 `profiles/` 新建 `<用户名>.md` 并 commit |
 | 19–33 min | Pull Request（主角） | 发起 PR 与 base/compare 方向、`Fixes #N`；四标签解剖；讲台演示 review；merge 三式与 issue 自动关闭 |
 | 33–39 min | Actions | PR 上的 Checks；运行日志；红叉演示 |
 | 39–46 min | Pages | Settings → Pages；拿到线上网址；互访 |
