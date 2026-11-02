@@ -13,7 +13,7 @@
 
 ## 课程标题
 
-**GitHub in Action: One PR, Five Superpowers**
+**GitHub Beyond the Code: From a Fork to Your First Merged PR**
 
 副标题：
 
