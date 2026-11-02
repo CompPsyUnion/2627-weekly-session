@@ -1,0 +1,3 @@
+[submodule "Contents/S03-20261106-GitHub/github-playground"]
+	path = Contents/S03-20261106-GitHub/github-playground
+	url = git@github.com:CompPsyUnion/github-playground.git
