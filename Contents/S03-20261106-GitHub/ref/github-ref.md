@@ -5,7 +5,7 @@
 - `README.md`（门面）；课堂练习是每人往 `profiles/` 目录新增一个 `<自己的 GitHub 用户名>.md` 文件（互不冲突）。
 - 一个自制 CI workflow：**检测 `profiles/` 目录**——校验每人恰好一个以自己用户名命名的文件、内容非空等——让每个 PR 自动出现 Checks 绿勾/红叉。
 - Pages 已配好一套漂亮的主题模板（`docs/` 或主题分支）——开启后立刻是一个好看的站点，而不是白纸。
-- Settings：允许 fork、Issues 开放、Actions 对 fork 可见。
+- Settings：允许 fork、Issues 开放、Actions 对 fork 可见；**Pages 的 Build and deployment 选 "GitHub Actions"**（一次性）——之后上游站点由 CI 在每次 merge 后自动部署，无需任何人手动发布。
 
 ---
 
@@ -143,6 +143,7 @@
 
 - **GitHub Pages** = 免费静态网站托管：把仓库的某个分支/目录发布成网址。
 - playground 已配好一套现成的主题模板——开出来就是一个排版好看的站点。
+- 对比讲一个细节（30 秒）：**上游**仓库的站点是 CI 用 Actions 自动部署的（merge 即更新）；**你的 fork** 里没人替你配置——所以要自己到 Settings 里开一次。同一个功能，两种启用方式。
 - 每人动手（fork 里已预置主题页面）：
   1. 自己的 fork → **Settings → Pages**。
   2. Source 选 `main` 分支 + `/docs` 目录 → **Save**。
