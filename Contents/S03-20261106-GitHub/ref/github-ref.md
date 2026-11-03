@@ -79,7 +79,7 @@
 
 网页操作（两条路，演示第一条即可）：
 
-- 路线一（新建文件）：文件列表页进入 `profiles/` 目录 → **Add file → Create new file** → 输入文件名 `<你的 GitHub 用户名>.md` → 写两三行自我介绍 → **Commit changes** 对话框里选 **"Create a new branch for this commit"**，填分支名（如 `add-<你的用户名>`）→ Commit——网页顺便就把分支建好了。
+- 路线一（新建文件）：文件列表页进入 `profiles/` 目录 → **Add file → Create new file** → 输入文件名 `<你的 GitHub 用户名>.md` → 写两三行自我介绍 → **Commit changes** 对话框里选 **"Create a new branch for this commit"**，填分支名（如 `docs/add-<你的用户名>`）→ Commit——网页顺便就把分支建好了。
 - 路线二：先在分支下拉框输入新分支名 → "Create branch from main" → 再进分支新建文件。
 
 每个人动手：fork playground，从新分支在 `profiles/` 下**新建名为自己 GitHub 用户名的 `<用户名>.md`**（写两三行自我介绍），commit。每人一个独立文件——几十个人的 PR 互不冲突，还能逐个 review。
