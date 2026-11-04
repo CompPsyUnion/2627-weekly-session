@@ -95,6 +95,21 @@ Where should small problems live, so they don't get lost?
 ---
 
 <!-- _class: side -->
+<!-- Screenshot focus: right sidebar (labels/assignees/milestone) — image LEFT -->
+
+<style scoped>
+section.side {
+  padding-left: 620px;
+}
+section.side img {
+  right: auto;
+  left: 0;
+}
+section.side h4 {
+  left: auto;
+  right: 84px;
+}
+</style>
 
 ![w:540](assets/issues-list.svg)
 
@@ -133,9 +148,7 @@ Open a new issue on the playground repo — propose an improvement, two or three
 
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/problem-denied.svg)
+<!-- Regular content page: screenshot focus is the error banner at the top — image below -->
 
 ## 06 · Problem: push denied
 
@@ -143,17 +156,32 @@ Open a new issue on the playground repo — propose an improvement, two or three
 
 The fix is ready, you hit push — `permission denied`. Of course: the repository is not yours, and that is a feature, not a bug.
 
-<br/>
-
 ### THE QUESTION
 
 How do you get your own copy to work on?
+
+![w:760](assets/problem-denied.svg)
 
 #### DENIED
 
 ---
 
 <!-- _class: side -->
+<!-- Screenshot focus: the Fork button, top-right corner — image LEFT -->
+
+<style scoped>
+section.side {
+  padding-left: 620px;
+}
+section.side img {
+  right: auto;
+  left: 0;
+}
+section.side h4 {
+  left: auto;
+  right: 84px;
+}
+</style>
 
 ![w:540](assets/fork.svg)
 
@@ -191,9 +219,7 @@ How do we keep every change in its own lane?
 
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/new-file.svg)
+<!-- Regular content page: screenshot focus is the Add file bar at the top — image below -->
 
 ## 09 · Branch first, then edit
 
@@ -201,17 +227,15 @@ How do we keep every change in its own lane?
 
 Main stays in sync with upstream; one change per branch — `docs/add-<your-username>`.
 
-<br/>
-
 ### HANDS-ON
 
 `profiles/` → **Add file → Create new file** → `<your-username>.md` → commit on a new branch.
 
+![w:760](assets/new-file.svg)
+
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/compare.svg)
+<!-- Regular content page: screenshot focus is the base/compare dropdowns at the top — image below -->
 
 ## 10 · Pull Request: the letter
 
@@ -219,19 +243,17 @@ Main stays in sync with upstream; one change per branch — `docs/add-<your-user
 
 GitHub notices your branch is ahead and offers to propose the merge.
 
-<br/>
-
 ### READ THE DIRECTION
 
 base ← upstream `main` · compare ← your fork's branch.
+
+![w:760](assets/compare.svg)
 
 #### PR
 
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/pr-anatomy.svg)
+<!-- Regular content page: screenshot focus is the tab bar at the top — image below -->
 
 ## 11 · Anatomy of a pull request
 
@@ -242,11 +264,11 @@ base ← upstream `main` · compare ← your fork's branch.
 **Files changed** — line-by-line diff
 **Checks** — **Actions** done by bots.
 
-<br/>
-
 ### NOT A COMMAND
 
 A PR is a request for review.
+
+![w:760](assets/pr-anatomy.svg)
 
 ---
 
@@ -269,6 +291,21 @@ How can anyone trust code they did not write?
 ---
 
 <!-- _class: side -->
+<!-- Screenshot focus: review buttons, top-right of the PR page — image LEFT -->
+
+<style scoped>
+section.side {
+  padding-left: 620px;
+}
+section.side img {
+  right: auto;
+  left: 0;
+}
+section.side h4 {
+  left: auto;
+  right: 84px;
+}
+</style>
 
 ![w:540](assets/review.svg)
 
@@ -326,9 +363,7 @@ Problem → issue → fix → PR → merge → closed. That is open source.
 
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/problem-blocked.svg)
+<!-- Regular content page: screenshot focus is the checks banner at the top — image below -->
 
 ## 16 · The mystery stamp?
 
@@ -336,11 +371,11 @@ Problem → issue → fix → PR → merge → closed. That is open source.
 
 You open the PR page — a spinner spins, then a green tick or a red cross appears. Nobody clicked anything; the merge is blocked.
 
-<br/>
-
 ### THE QUESTION
 
 Who — or what — is checking the code?
+
+![w:760](assets/problem-blocked.svg)
 
 ---
 
@@ -404,9 +439,7 @@ How does a repository become a plain link?
 
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/pages-settings.svg)
+<!-- Regular content page: screenshot focus is the "site is live" banner at the top — image below -->
 
 ## 20 · Pages: repo becomes a website
 
@@ -414,11 +447,11 @@ How does a repository become a plain link?
 
 Settings → Pages → Deploy from a branch → `main` / `/docs`.
 
-<br/>
-
 ### UPSTREAM vs FORK
 
 Upstream deploys automatically via Actions; in your fork, you flip the switch once.
+
+![w:760](assets/pages-settings.svg)
 
 ---
 
