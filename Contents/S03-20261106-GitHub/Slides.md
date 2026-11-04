@@ -78,9 +78,27 @@ Computer Psycho Union · 6 November 2026
 
 <!-- _class: side -->
 
+![w:540](assets/problem-chat.svg)
+
+## 03 · Problem: the typo that drowned
+
+### WHAT HAPPENED
+
+You spot a typo in a project README. You mention it in the group chat
+
+<br/>
+
+### THE QUESTION
+
+Where should small problems live, so they don't get lost?
+
+---
+
+<!-- _class: side -->
+
 ![w:540](assets/issues-list.svg)
 
-## 03 · Issues
+## 04 · Issues
 
 ### A SHARED TODO
 
@@ -99,7 +117,7 @@ A typo in the README, a feature wish — too small for a PR, too easy to lose in
 
 ![w:540](assets/new-issue.svg)
 
-## 04 · Create an Issue
+## 05 · Create an Issue
 
 ### YOUR TURN
 
@@ -117,9 +135,29 @@ Open a new issue on the playground repo — propose an improvement, two or three
 
 <!-- _class: side -->
 
+![w:540](assets/problem-denied.svg)
+
+## 06 · Problem: push denied
+
+### WHAT HAPPENED
+
+The fix is ready, you hit push — `permission denied`. Of course: the repository is not yours, and that is a feature, not a bug.
+
+<br/>
+
+### THE QUESTION
+
+How do you get your own copy to work on?
+
+#### DENIED
+
+---
+
+<!-- _class: side -->
+
 ![w:540](assets/fork.svg)
 
-## 05 · Fork: copy it home
+## 07 · Fork: copy it home
 
 ### NOT YOUR REPO
 
@@ -137,9 +175,27 @@ Fork duplicates the whole repo under your account; break it freely, upstream sta
 
 <!-- _class: side -->
 
+![w:540](assets/problem-mixed.svg)
+
+## 08 · Problem: one main, two experiments
+
+### WHAT HAPPENED
+
+The lazy path is editing main directly — until your half-finished idea, your typo fix, and the upstream sync all tangle on the same line of history.
+
+<br/>
+
+### THE QUESTION
+
+How do we keep every change in its own lane?
+
+---
+
+<!-- _class: side -->
+
 ![w:540](assets/new-file.svg)
 
-## 06 · Branch first, then edit
+## 09 · Branch first, then edit
 
 ### WHY NOT MAIN?
 
@@ -157,7 +213,7 @@ Main stays in sync with upstream; one change per branch — `docs/add-<your-user
 
 ![w:540](assets/compare.svg)
 
-## 07 · Pull Request: the letter
+## 10 · Pull Request: the letter
 
 ### COMPARE & PULL REQUEST
 
@@ -177,7 +233,7 @@ base ← upstream `main` · compare ← your fork's branch.
 
 ![w:540](assets/pr-anatomy.svg)
 
-## 08 · Anatomy of a pull request
+## 11 · Anatomy of a pull request
 
 ### TABS
 
@@ -196,9 +252,27 @@ A PR is a request for review.
 
 <!-- _class: side -->
 
+![w:540](assets/problem-review.svg)
+
+## 12 · Problem: a wall of lines
+
+### WHAT HAPPENED
+
+Your PR arrives — hundreds of changed lines from a stranger. The maintainer has thirty more like it today.
+
+<br/>
+
+### THE QUESTION
+
+How can anyone trust code they did not write?
+
+---
+
+<!-- _class: side -->
+
 ![w:540](assets/review.svg)
 
-## 09 · Review: three verdicts
+## 13 · Review
 
 ### ON STAGE
 
@@ -218,7 +292,7 @@ Review the code, not the person; describe what and why.
 
 ![w:540](assets/merge-dropdown.svg)
 
-## 10 · Merge: three shapes of history
+## 14 · Merge: three shapes of history
 
 ### PICK ONE
 
@@ -236,7 +310,7 @@ Nobody clicks — the robot squash-merges every PR that passes the checks.
 
 ![w:540](assets/checks.svg)
 
-## 11 · Fixes #N — the loop closes
+## 15 · Fixes #N — the loop closes
 
 ### THE CLIMAX
 
@@ -254,9 +328,27 @@ Problem → issue → fix → PR → merge → closed. That is open source.
 
 <!-- _class: side -->
 
+![w:540](assets/problem-blocked.svg)
+
+## 16 · The mystery stamp?
+
+### WHAT HAPPENED
+
+You open the PR page — a spinner spins, then a green tick or a red cross appears. Nobody clicked anything; the merge is blocked.
+
+<br/>
+
+### THE QUESTION
+
+Who — or what — is checking the code?
+
+---
+
+<!-- _class: side -->
+
 ![w:540](assets/actions-run.svg)
 
-## 12 · Actions: the robot colleague
+## 17 · Actions: bot colleague
 
 ### CHECKS EXPLAINED
 
@@ -276,7 +368,7 @@ Open the Actions tab in your fork — step-by-step logs.
 
 ![w:540](assets/checks.svg)
 
-## 13 · Red cross is a safety net
+## 18 · Red cross is a safety net
 
 ### CAUGHT IN THE ACT
 
@@ -294,9 +386,29 @@ The robot stops problems before they reach main.
 
 <!-- _class: side -->
 
+![w:540](assets/problem-share.svg)
+
+## 19 · Site written, host it?
+
+### WHAT HAPPENED
+
+The page works on your machine. Sharing it means sending a zip — or worse, "just clone my repo".
+
+<br/>
+
+### THE QUESTION
+
+How does a repository become a plain link?
+
+#### SHARE
+
+---
+
+<!-- _class: side -->
+
 ![w:540](assets/pages-settings.svg)
 
-## 14 · Pages: repo becomes a website
+## 20 · Pages: repo becomes a website
 
 ### FREE HOSTING
 
@@ -314,7 +426,7 @@ Upstream deploys automatically via Actions; in your fork, you flip the switch on
 
 ![w:540](assets/roster.svg)
 
-## 15 · The roster page
+## 21 · The roster page
 
 ### ONE CARD PER PROFILE
 
@@ -330,7 +442,7 @@ Post your `username.github.io/github-playground` link in the group.
 
 <!-- Regular content page -->
 
-## 16 · Final exercise: connect the dots
+## 22 · Final exercise: connect the dots
 
 - New branch → edit `docs/` → commit → **PR to your own repo**
 - Checks run again → merge → the website updates itself
