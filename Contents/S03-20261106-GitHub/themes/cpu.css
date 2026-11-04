@@ -1,0 +1,727 @@
+/* @theme cpu */
+
+/*
+ * CPU (Computer Psycho Union) Marp theme
+ * Brand: yellow #f7d447 / ink #111 / white — Swiss poster style with
+ * blueprint dashed guides, yellow tag blocks and outlined display words.
+ *
+ * Slide classes: lead | agenda | roster | side | yellow | activities | todo
+ * See README.md for the Markdown shape of each class.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+:root {
+  --yellow: #f7d447;
+  --yellow-soft: #f9dd74;
+  --ink: #111111;
+  --gray: #a3a3a3;
+  --grid: #e3d5a8;
+  --sans: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans', 'Microsoft YaHei', sans-serif;
+  --display: 'Archivo Black', 'Arial Black', 'Noto Sans SC', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* ---------- base slide ---------- */
+
+section {
+  width: 1280px;
+  height: 720px;
+  box-sizing: border-box;
+  position: relative;
+  padding: 64px 84px 70px;
+  background: #ffffff;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* blueprint margin guides */
+section::before {
+  content: '';
+  position: absolute;
+  top: 30px;
+  bottom: 30px;
+  left: 60px;
+  right: 60px;
+  border-left: 2px dashed var(--grid);
+  border-right: 2px dashed var(--grid);
+  pointer-events: none;
+}
+
+/* page number */
+section::after {
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+  position: absolute;
+  right: 76px;
+  bottom: 32px;
+  padding: 2px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(2px);
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #c9b96c;
+  z-index: 10;
+}
+
+h1 {
+  margin: 0.4em 0 0.2em;
+  font-size: 1.5em;
+}
+
+p {
+  margin: 0.6em 0;
+}
+
+ol {
+  margin: 10px 0;
+  padding-left: 2em;
+}
+
+blockquote {
+  margin: 10px 0;
+  padding: 4px 16px;
+  border-left: 6px solid var(--yellow);
+  color: var(--gray);
+}
+
+strong {
+  font-weight: 800;
+  color: var(--ink);
+}
+
+em {
+  font-style: normal;
+  color: var(--gray);
+  font-size: 0.82em;
+  font-weight: 500;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.8em;
+  font-weight: 700;
+  color: #7a7a7a;
+  background: #f6f1de;
+  padding: 1px 8px;
+  border-radius: 3px;
+}
+
+/* ---------- content slide header ---------- */
+
+h2 {
+  position: relative;
+  margin: 0 0 10px;
+  padding: 0 120px 14px 0;
+  border-bottom: 2px dashed var(--grid);
+  color: var(--yellow);
+  font-weight: 900;
+  font-size: 44px;
+  line-height: 1.25;
+}
+
+/* brand glyph, top-right */
+h2::after {
+  content: '</>';
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+h3 {
+  display: inline-block;
+  margin: 24px 0 8px;
+  padding: 2px 16px 4px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+}
+
+h2 + h3 {
+  margin-top: 26px;
+}
+
+/* ---------- lists: yellow square markers ---------- */
+
+ul {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+}
+
+ul li {
+  position: relative;
+  padding-left: 30px;
+  margin: 12px 0;
+}
+
+ul li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.56em;
+  width: 13px;
+  height: 13px;
+  background: var(--yellow);
+}
+
+ul ul {
+  margin: 4px 0 2px;
+}
+
+ul ul li {
+  margin: 6px 0;
+}
+
+ul ul li::before {
+  top: 0.6em;
+  width: 9px;
+  height: 9px;
+  background: var(--yellow-soft);
+}
+
+/* ---------- tables ---------- */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0 8px;
+  font-size: 26px;
+}
+
+th {
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 900;
+  border: 2.5px solid var(--ink);
+  padding: 9px 16px;
+  text-align: left;
+}
+
+td {
+  border: 2.5px solid var(--ink);
+  padding: 8px 16px;
+  background: #ffffff;
+}
+
+tr:nth-child(even) td {
+  background: #fdf6dd;
+}
+
+/* ---------- inline images ---------- */
+
+/* no frame, no shrinking: an image renders at exactly the size its w:/h:
+   directive gives (its natural size with no directive) — if it runs past
+   the right edge or the bottom of the slide, it simply overflows */
+img {
+  vertical-align: middle;
+}
+
+/* an image standing alone in its paragraph (usually sitting below the
+   text) is centered horizontally; an image placed to the side inside a
+   .columns block is centered vertically by that block's flex rule */
+p > img:only-child {
+  display: block;
+  margin: 14px auto 4px;
+}
+
+/* ---------- two-column blocks ---------- */
+
+/* <div class="columns"> with two <div class="column"> children puts text and
+   an image (or two text blocks) side by side */
+div.columns {
+  display: flex;
+  gap: 48px;
+  align-items: center;
+  margin: 16px 0;
+}
+
+div.columns > div.column {
+  flex: 1;
+  min-width: 0;
+}
+
+div.columns > div.column > :first-child {
+  margin-top: 0;
+}
+
+/* ---------- roster table (name | role | duties) ---------- */
+
+section.roster table {
+  font-size: 22px;
+  table-layout: fixed;
+}
+
+section.roster th:first-child,
+section.roster td:first-child {
+  width: 350px;
+}
+
+section.roster th {
+  padding: 7px 14px;
+}
+
+section.roster td {
+  padding: 7px 14px;
+}
+
+/* ---------- side-image slide ---------- */
+/*
+ * The image is an ordinary inline image — ![height:720px](assets/poster.png)
+ * — written anywhere on the page; the theme pins it to the right edge at
+ * full slide height (a landscape image can take width: instead) and keeps
+ * the text blocks clear of it. No background layer involved: an inline image
+ * renders the same in every pipeline (CLI, PDF, VS Code preview).
+ * h3 tag blocks distribute evenly; h4 is the outlined mega word, bottom-left.
+ */
+
+section.side {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 200px;
+}
+
+/* text column stays clear of the pinned image whatever its size (h2 gets
+   less: its max-width is content-box, and it carries 120px right padding) */
+section.side h2 {
+  max-width: 500px;
+}
+
+section.side h3,
+section.side p {
+  max-width: 600px;
+}
+
+/* the pinned side image: right edge, full height; the height (or width)
+   directive decides its rendered size, the caps below catch directive-less
+   images */
+section.side img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-height: 100%;
+  max-width: 45%;
+  margin: 0;
+}
+
+section.side p > img:only-child {
+  margin: 0;
+}
+
+section.side h2 {
+  font-size: 36px;
+}
+
+section.side h3 {
+  font-size: 33px;
+  margin-top: auto;
+}
+
+section.side h3 + p {
+  font-size: 29px;
+  margin: 10px 0 0;
+}
+
+section.side h4 {
+  position: absolute;
+  left: 84px;
+  bottom: 44px;
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 92px;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 3px var(--yellow);
+  pointer-events: none;
+}
+
+/* ---------- tag-block slide (todo etc.) ---------- */
+
+section.todo {
+  display: flex;
+  flex-direction: column;
+}
+
+section.todo h3 {
+  margin-top: auto;
+}
+
+/* ---------- title slide ---------- */
+
+section.lead {
+  padding-top: 268px;
+}
+
+/* yellow banner */
+section.lead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 196px;
+  background: var(--yellow);
+  border: none;
+}
+
+/* org name, right side of banner — carried by h2::after because Marpit
+   reserves section::after for pagination and strips its content */
+section.lead h2 {
+  position: absolute;
+  top: 142px;
+  left: 84px;
+  right: 84px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 23px;
+}
+
+section.lead h2::after {
+  content: 'Computer Psycho Union\A University of Nottingham Ningbo China';
+  position: absolute;
+  top: -74px;
+  right: 0;
+  white-space: pre;
+  text-align: right;
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+section.lead h1 {
+  position: absolute;
+  top: 32px;
+  left: 84px;
+  right: 470px;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 48px;
+  line-height: 1.22;
+}
+
+section.lead p {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: 27px;
+}
+
+section.lead p + p {
+  margin-top: 2px;
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--gray);
+}
+
+/* mega display words, bottom-right: h3 outlined, h4 solid */
+section.lead h3,
+section.lead h4 {
+  position: absolute;
+  right: 84px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: none;
+  font-family: var(--display);
+  font-weight: 400;
+  line-height: 0.96;
+  pointer-events: none;
+}
+
+section.lead h3 {
+  bottom: 150px;
+  font-size: 100px;
+  color: transparent;
+  -webkit-text-stroke: 3.5px var(--yellow);
+}
+
+section.lead h4 {
+  bottom: 46px;
+  font-size: 80px;
+  color: var(--yellow);
+}
+
+/* ---------- agenda slide ---------- */
+
+section.agenda ol {
+  list-style: none;
+  counter-reset: item;
+  margin: 34px 0 0;
+  padding: 0;
+}
+
+section.agenda ol li {
+  counter-increment: item;
+  position: relative;
+  display: block;
+  padding: 20px 16px 20px 138px;
+  margin: 0;
+  border-bottom: 2px dashed var(--grid);
+  font-weight: 900;
+  font-size: 35px;
+  line-height: 1.35;
+}
+
+section.agenda ol li::before {
+  content: '0' counter(item);
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 58px;
+  line-height: 1;
+  color: var(--yellow-soft);
+}
+
+section.agenda ol li:first-child {
+  background: var(--yellow);
+}
+
+section.agenda ol li:first-child::before {
+  color: #ffffff;
+}
+
+section.agenda ol li:first-child em {
+  color: rgba(17, 17, 17, 0.72);
+}
+
+/* ---------- grouped timeline slide ---------- */
+
+section.activities {
+  font-size: 28px;
+}
+
+section.activities h3 {
+  margin: 16px 0 6px;
+  font-size: 28px;
+}
+
+section.activities ul {
+  margin: 4px 0;
+}
+
+section.activities ul li {
+  margin: 8px 0;
+}
+
+/* ---------- yellow section divider ---------- */
+
+section.yellow {
+  background: var(--yellow);
+}
+
+section.yellow::before {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* divider page number: dark on yellow — must repeat the pagination content
+   (a content-less section::after rule breaks Marpit's page-number printer) */
+section.yellow::after {
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+  color: rgba(17, 17, 17, 0.6);
+}
+
+/* no page number on the title slide (would collide with the mega word);
+   transparent, never content-less — see the note above */
+section.lead::after {
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+  color: transparent;
+}
+
+section.yellow h2 {
+  position: absolute;
+  top: 46px;
+  right: 84px;
+  left: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  color: transparent;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 96px;
+  line-height: 1;
+  -webkit-text-stroke: 3px #ffffff;
+}
+
+section.yellow h2::after {
+  content: none;
+}
+
+section.yellow h3 {
+  position: absolute;
+  top: 172px;
+  left: 84px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: none;
+  color: #ffffff;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 96px;
+  line-height: 1;
+}
+
+section.yellow h4 {
+  position: absolute;
+  top: 352px;
+  left: 84px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: none;
+  color: var(--ink);
+  font-weight: 900;
+  font-size: 88px;
+  line-height: 1.15;
+}
+
+section.yellow p {
+  position: absolute;
+  left: 84px;
+  bottom: 84px;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 24px;
+}
+
+/* ---------- code blocks (macOS window style) ---------- */
+/* the same window card also wraps rendered mermaid diagrams (div.mermaid,
+   swapped in by the loader script from template.md); an unrendered
+   pre.mermaid fallback picks these styles up for free */
+
+pre,
+div.mermaid {
+  position: relative;
+  margin: 16px 0 14px;
+  padding: 58px 26px 22px;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  background: #fdfaf0;
+  box-shadow: 7px 7px 0 var(--yellow);
+  font-size: 24px;
+  line-height: 1.55;
+  overflow: hidden;
+}
+
+pre::before,
+div.mermaid::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40px;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 9.5px 9.5px 0 0;
+  background-color: #f4ecd7;
+  background-image:
+    radial-gradient(circle at 26px 20px, #ff5f57 0 6px, transparent 6.5px),
+    radial-gradient(circle at 48px 20px, #febc2e 0 6px, transparent 6.5px),
+    radial-gradient(circle at 70px 20px, #28c840 0 6px, transparent 6.5px);
+}
+
+div.mermaid {
+  text-align: center;
+}
+
+div.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+pre code {
+  display: block;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 1em;
+  font-weight: 500;
+  line-height: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  tab-size: 2;
+}
+
+/* ---------- syntax highlighting ---------- */
+
+pre code .hljs-comment,
+pre code .hljs-quote {
+  color: #a39a7a;
+  font-style: italic;
+}
+
+pre code .hljs-keyword,
+pre code .hljs-selector-tag,
+pre code .hljs-literal,
+pre code .hljs-type {
+  color: #b8860b;
+  font-weight: 700;
+}
+
+pre code .hljs-string,
+pre code .hljs-regexp,
+pre code .hljs-addition,
+pre code .hljs-attribute,
+pre code .hljs-meta .hljs-string {
+  color: #2e7d32;
+}
+
+pre code .hljs-number,
+pre code .hljs-built_in,
+pre code .hljs-symbol,
+pre code .hljs-bullet {
+  color: #c2185b;
+}
+
+pre code .hljs-title,
+pre code .hljs-section,
+pre code .hljs-name,
+pre code .hljs-selector-id,
+pre code .hljs-selector-class {
+  color: #1565c0;
+  font-weight: 700;
+}
+
+pre code .hljs-variable,
+pre code .hljs-template-variable,
+pre code .hljs-params,
+pre code .hljs-attr {
+  color: #5d4037;
+}
+
+pre code .hljs-deletion {
+  color: #c62828;
+  background: #fdecea;
+}
+
+pre code .hljs-emphasis {
+  font-style: italic;
+}
+
+pre code .hljs-strong {
+  font-weight: 700;
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="500">
+  <rect width="100%" height="100%" fill="#f2f2ef"/>
+  <rect x="24" y="24" width="852" height="452" fill="none" stroke="#b8b8b0" stroke-width="3" stroke-dasharray="14 10"/>
+  <text x="450" y="230" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#8a8a82" text-anchor="middle">Settings → Pages</text>
+  <text x="450" y="270" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#8a8a82" text-anchor="middle">Source: main /docs</text>
+  <text x="450" y="330" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#a8a8a0" text-anchor="middle">screenshot goes here</text>
+</svg>
