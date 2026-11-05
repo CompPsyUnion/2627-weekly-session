@@ -45,11 +45,25 @@ Computer Psycho Union · 6 November 2026
 
 ---
 
-<!-- _class: side -->
+<!-- Regular content page: two columns (1/3 + 2/3), image below -->
 
-![w:540](assets/01-repo-overview.svg)
+<style scoped>
+/* force 1/3 + 2/3 and top-align both columns (theme centres vertically) */
+div.columns {
+  align-items: flex-start;
+}
+div.columns > div.column {
+  flex: 0 0 30%;
+}
+div.columns > div.column:last-child {
+  flex: 2;
+}
+</style>
 
 ## 01 · More than code storage
+
+<div class="columns">
+<div class="column">
 
 ### YOUR PROFILE
 
@@ -57,11 +71,19 @@ Computer Psycho Union · 6 November 2026
 - Pinned repos
 - Green squares
 
-<br/>
+</div>
+<div class="column">
 
 ### STRANGERS, ONE CODEBASE
 
-**2627-weekly-session** | **microsoft/vscode**
+- **@CompPsyUnion/2627-weekly-session**
+- **@unnc-aim/26RC_R2_ws**
+- **@microsoft/vscode**
+
+</div>
+</div>
+
+![w:760](assets/01-repo-overview.svg)
 
 ---
 
@@ -80,7 +102,7 @@ Computer Psycho Union · 6 November 2026
 
 ![w:540](assets/03-typo-drowned.svg)
 
-## 03 · Problem: the typo that drowned
+## 03 · The typo that drowns
 
 ### WHAT HAPPENED
 
@@ -90,7 +112,7 @@ You spot a typo in a project README. You mention it in the group chat
 
 ### THE QUESTION
 
-Where should small problems live, so they don't get lost?
+Where should problem reports / feature requests live, so they don't get lost?
 
 ---
 
@@ -117,7 +139,8 @@ section.side h4 {
 
 ### A SHARED TODO
 
-A typo in the README, a feature wish — too small for a PR, too easy to lose in a chat group.
+A typo in the README / A feature wish
+Too easy to lose in a chat group.
 
 <br/>
 
@@ -129,6 +152,20 @@ A typo in the README, a feature wish — too small for a PR, too easy to lose in
 ---
 
 <!-- _class: side -->
+
+<style scoped>
+section.side {
+  padding-left: 620px;
+}
+section.side img {
+  right: auto;
+  left: 0;
+}
+section.side h4 {
+  left: auto;
+  right: 84px;
+}
+</style>
 
 ![w:540](assets/05-new-issue.svg)
 
@@ -154,7 +191,8 @@ Open a new issue on the playground repo — propose an improvement, two or three
 
 ### WHAT HAPPENED
 
-The fix is ready, you hit push — `permission denied`. Of course: the repository is not yours, and that is a feature, not a bug.
+The fix is ready, you hit push — `permission denied`.
+Of course: the repository is not yours, and that is a feature, not a bug.
 
 ### THE QUESTION
 
@@ -187,15 +225,12 @@ section.side h4 {
 
 ## 07 · Fork: copy it home
 
-### NOT YOUR REPO
-
-You cannot push to someone else's repository — that is a feature, not a bug.
-
-<br/>
-
 ### YOUR OWN COPY
 
-Fork duplicates the whole repo under your account; break it freely, upstream stays untouched.
+- Duplicates the whole repo
+- Under your account
+- Break it freely
+- Upstream stays untouched.
 
 #### FORK
 
