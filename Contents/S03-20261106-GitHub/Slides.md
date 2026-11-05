@@ -47,7 +47,7 @@ Computer Psycho Union · 6 November 2026
 
 <!-- _class: side -->
 
-![w:540](assets/vscode-repo.svg)
+![w:540](assets/01-repo-overview.svg)
 
 ## 01 · More than code storage
 
@@ -72,13 +72,13 @@ Computer Psycho Union · 6 November 2026
 - **You don't know the repo owner** — how do you safely hand your change back?
 - No direct push, no trust — and yet the world ships this way every day
 
-![w:760](assets/fork.svg)
+![w:760](assets/02-fork-button.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/problem-chat.svg)
+![w:540](assets/03-typo-drowned.svg)
 
 ## 03 · Problem: the typo that drowned
 
@@ -111,7 +111,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/issues-list.svg)
+![w:540](assets/04-issues-list.svg)
 
 ## 04 · Issues
 
@@ -130,7 +130,7 @@ A typo in the README, a feature wish — too small for a PR, too easy to lose in
 
 <!-- _class: side -->
 
-![w:540](assets/new-issue.svg)
+![w:540](assets/05-new-issue.svg)
 
 ## 05 · Create an Issue
 
@@ -160,7 +160,7 @@ The fix is ready, you hit push — `permission denied`. Of course: the repositor
 
 How do you get your own copy to work on?
 
-![w:760](assets/problem-denied.svg)
+![w:760](assets/06-push-denied.svg)
 
 #### DENIED
 
@@ -183,7 +183,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/fork.svg)
+![w:540](assets/02-fork-button.svg)
 
 ## 07 · Fork: copy it home
 
@@ -203,7 +203,7 @@ Fork duplicates the whole repo under your account; break it freely, upstream sta
 
 <!-- _class: side -->
 
-![w:540](assets/problem-mixed.svg)
+![w:540](assets/07-tangled-main.svg)
 
 ## 08 · Problem: one main, two experiments
 
@@ -231,7 +231,7 @@ Main stays in sync with upstream; one change per branch — `docs/add-<your-user
 
 `profiles/` → **Add file → Create new file** → `<your-username>.md` → commit on a new branch.
 
-![w:760](assets/new-file.svg)
+![w:760](assets/08-create-file.svg)
 
 ---
 
@@ -247,7 +247,7 @@ GitHub notices your branch is ahead and offers to propose the merge.
 
 base ← upstream `main` · compare ← your fork's branch.
 
-![w:760](assets/compare.svg)
+![w:760](assets/09-compare-pr.svg)
 
 #### PR
 
@@ -268,13 +268,13 @@ base ← upstream `main` · compare ← your fork's branch.
 
 A PR is a request for review.
 
-![w:760](assets/pr-anatomy.svg)
+![w:760](assets/10-pr-tabs.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/problem-review.svg)
+![w:540](assets/11-wall-of-lines.svg)
 
 ## 12 · Problem: a wall of lines
 
@@ -307,7 +307,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/review.svg)
+![w:540](assets/12-review-buttons.svg)
 
 ## 13 · Review
 
@@ -327,7 +327,7 @@ Review the code, not the person; describe what and why.
 
 <!-- _class: side -->
 
-![w:540](assets/merge-dropdown.svg)
+![w:540](assets/13-merge-dropdown.svg)
 
 ## 14 · Merge: three shapes of history
 
@@ -345,7 +345,7 @@ Nobody clicks — the robot squash-merges every PR that passes the checks.
 
 <!-- _class: side -->
 
-![w:540](assets/checks.svg)
+![w:540](assets/14-checks.svg)
 
 ## 15 · Fixes #N — the loop closes
 
@@ -375,13 +375,13 @@ You open the PR page — a spinner spins, then a green tick or a red cross appea
 
 Who — or what — is checking the code?
 
-![w:760](assets/problem-blocked.svg)
+![w:760](assets/15-mystery-stamp.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/actions-run.svg)
+![w:540](assets/16-actions-log.svg)
 
 ## 17 · Actions: bot colleague
 
@@ -401,7 +401,7 @@ Open the Actions tab in your fork — step-by-step logs.
 
 <!-- _class: side -->
 
-![w:540](assets/checks.svg)
+![w:540](assets/14-checks.svg)
 
 ## 18 · Red cross is a safety net
 
@@ -421,7 +421,7 @@ The robot stops problems before they reach main.
 
 <!-- _class: side -->
 
-![w:540](assets/problem-share.svg)
+![w:540](assets/17-share-problem.svg)
 
 ## 19 · Site written, host it?
 
@@ -451,13 +451,13 @@ Settings → Pages → Deploy from a branch → `main` / `/docs`.
 
 Upstream deploys automatically via Actions; in your fork, you flip the switch once.
 
-![w:760](assets/pages-settings.svg)
+![w:760](assets/18-pages-settings.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/roster.svg)
+![w:540](assets/19-roster.svg)
 
 ## 21 · The roster page
 
@@ -480,7 +480,7 @@ Post your `username.github.io/github-playground` link in the group.
 - New branch → edit `docs/` → commit → **PR to your own repo**
 - Checks run again → merge → the website updates itself
 
-![w:760](assets/roster.svg)
+![w:760](assets/19-roster.svg)
 
 *Change → robot checks → deploy. You built the whole pipeline.*
 
