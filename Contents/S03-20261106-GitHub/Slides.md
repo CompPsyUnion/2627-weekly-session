@@ -83,7 +83,7 @@ div.columns > div.column:last-child {
 </div>
 </div>
 
-![w:760](assets/01-repo-overview.svg)
+![w:760](assets/repo-overview.svg)
 
 ---
 
@@ -94,13 +94,13 @@ div.columns > div.column:last-child {
 - **You don't know the repo owner** — how do you safely hand your change back?
 - No direct push, no trust — and yet the world ships this way every day
 
-![w:760](assets/02-fork-button.svg)
+![w:760](assets/fork-button.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/03-typo-drowned.svg)
+![w:540](assets/typo-drowned.svg)
 
 ## 03 · The typo that drowns
 
@@ -133,7 +133,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/04-issues-list.svg)
+![w:540](assets/issues-list.svg)
 
 ## 04 · Issues
 
@@ -167,7 +167,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/05-new-issue.svg)
+![w:540](assets/new-issue.svg)
 
 ## 05 · Create an Issue
 
@@ -198,7 +198,7 @@ Of course: the repository is not yours, and that is a feature, not a bug.
 
 How do you get your own copy to work on?
 
-![w:760](assets/06-push-denied.svg)
+![w:760](assets/push-denied.svg)
 
 #### DENIED
 
@@ -221,7 +221,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/02-fork-button.svg)
+![w:540](assets/fork-button.svg)
 
 ## 07 · Fork: copy it home
 
@@ -236,43 +236,25 @@ section.side h4 {
 
 ---
 
-<!-- _class: side -->
-
-![w:540](assets/07-tangled-main.svg)
-
-## 08 · Problem: one main, two experiments
-
-### WHAT HAPPENED
-
-The lazy path is editing main directly — until your half-finished idea, your typo fix, and the upstream sync all tangle on the same line of history.
-
-<br/>
-
-### THE QUESTION
-
-How do we keep every change in its own lane?
-
----
-
 <!-- Regular content page: screenshot focus is the Add file bar at the top — image below -->
 
-## 09 · Branch first, then edit
+## 08 · Branch first, then edit
 
-### WHY NOT MAIN?
+### RULE FIRST, REASONS LATER
 
-Main stays in sync with upstream; one change per branch — `docs/add-<your-username>`.
+For now, take it as a rule: one change lives on its own branch — `docs/add-<your-username>`. You will see why once merge and sync enter the picture.
 
 ### HANDS-ON
 
 `profiles/` → **Add file → Create new file** → `<your-username>.md` → commit on a new branch.
 
-![w:760](assets/08-create-file.svg)
+![w:760](assets/create-file.svg)
 
 ---
 
 <!-- Regular content page: screenshot focus is the base/compare dropdowns at the top — image below -->
 
-## 10 · Pull Request: the letter
+## 09 · Pull Request: the letter
 
 ### COMPARE & PULL REQUEST
 
@@ -282,36 +264,39 @@ GitHub notices your branch is ahead and offers to propose the merge.
 
 base ← upstream `main` · compare ← your fork's branch.
 
-![w:760](assets/09-compare-pr.svg)
+![w:760](assets/compare-pr.svg)
 
 #### PR
 
 ---
 
-<!-- Regular content page: screenshot focus is the tab bar at the top — image below -->
+<!-- _class: side -->
+<!-- Screenshot focus: the PR tab bar, top of the page — image right -->
 
-## 11 · Anatomy of a pull request
-
-### TABS
-
-**Conversation** — the whole story
-**Commits** — the saves
-**Files changed** — line-by-line diff
-**Checks** — **Actions** done by bots.
+## 10 · Anatomy of a pull request
 
 ### NOT A COMMAND
 
 A PR is a request for review.
 
-![w:760](assets/10-pr-tabs.svg)
+<br/>
+
+### TABS
+
+- **Conversation** — the whole story
+- **Commits** — the saves
+- **Files changed** — line-by-line diff
+- **Checks** — **Actions** done by bots.
+
+![w:540](assets/pr-tabs.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/11-wall-of-lines.svg)
+![w:540](assets/wall-of-lines.svg)
 
-## 12 · Problem: a wall of lines
+## 11 · Problem: a wall of lines
 
 ### WHAT HAPPENED
 
@@ -342,9 +327,9 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/12-review-buttons.svg)
+![w:540](assets/review-buttons.svg)
 
-## 13 · Review
+## 12 · Review
 
 ### ON STAGE
 
@@ -362,13 +347,15 @@ Review the code, not the person; describe what and why.
 
 <!-- _class: side -->
 
-![w:540](assets/13-merge-dropdown.svg)
+![w:540](assets/merge-dropdown.svg)
 
-## 14 · Merge: three shapes of history
+## 13 · Merge: three shapes of history
 
 ### PICK ONE
 
-**Merge commit** — keep everything · **Squash** — compress to one · **Rebase** — replay in a line.
+- **Merge commit** — keep everything
+- **Squash** — compress to one
+- **Rebase** — replay in a line.
 
 <br/>
 
@@ -380,9 +367,9 @@ Nobody clicks — the robot squash-merges every PR that passes the checks.
 
 <!-- _class: side -->
 
-![w:540](assets/14-checks.svg)
+![w:540](assets/checks.svg)
 
-## 15 · Fixes #N — the loop closes
+## 14 · Fixes #N — the loop closes
 
 ### THE CLIMAX
 
@@ -398,6 +385,25 @@ Problem → issue → fix → PR → merge → closed. That is open source.
 
 ---
 
+<!-- _class: side -->
+<!-- Diagram page: git graph, two experiments tangled on main — image right -->
+
+![w:540](assets/tangled-main.svg)
+
+## 15 · Problem: one main, two experiments
+
+### WHAT HAPPENED
+
+The lazy path is editing main directly — until your half-finished idea, your typo fix, and the upstream sync all tangle on the same line of history.
+
+<br/>
+
+### THE QUESTION
+
+How do we keep every change in its own lane?
+
+---
+
 <!-- Regular content page: screenshot focus is the checks banner at the top — image below -->
 
 ## 16 · The mystery stamp?
@@ -410,13 +416,13 @@ You open the PR page — a spinner spins, then a green tick or a red cross appea
 
 Who — or what — is checking the code?
 
-![w:760](assets/15-mystery-stamp.svg)
+![w:760](assets/mystery-stamp.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/16-actions-log.svg)
+![w:540](assets/actions-log.svg)
 
 ## 17 · Actions: bot colleague
 
@@ -436,7 +442,7 @@ Open the Actions tab in your fork — step-by-step logs.
 
 <!-- _class: side -->
 
-![w:540](assets/14-checks.svg)
+![w:540](assets/checks.svg)
 
 ## 18 · Red cross is a safety net
 
@@ -456,7 +462,7 @@ The robot stops problems before they reach main.
 
 <!-- _class: side -->
 
-![w:540](assets/17-share-problem.svg)
+![w:540](assets/share-problem.svg)
 
 ## 19 · Site written, host it?
 
@@ -486,13 +492,13 @@ Settings → Pages → Deploy from a branch → `main` / `/docs`.
 
 Upstream deploys automatically via Actions; in your fork, you flip the switch once.
 
-![w:760](assets/18-pages-settings.svg)
+![w:760](assets/pages-settings.svg)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/19-roster.svg)
+![w:540](assets/roster.svg)
 
 ## 21 · The roster page
 
@@ -515,7 +521,7 @@ Post your `username.github.io/github-playground` link in the group.
 - New branch → edit `docs/` → commit → **PR to your own repo**
 - Checks run again → merge → the website updates itself
 
-![w:760](assets/19-roster.svg)
+![w:760](assets/roster.svg)
 
 *Change → robot checks → deploy. You built the whole pipeline.*
 
