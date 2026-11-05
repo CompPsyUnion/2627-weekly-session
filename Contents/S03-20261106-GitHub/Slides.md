@@ -83,7 +83,7 @@ div.columns > div.column:last-child {
 </div>
 </div>
 
-![w:760](assets/repo-overview.svg)
+![w:1000](assets/repo-overview.png)
 
 ---
 
@@ -94,19 +94,22 @@ div.columns > div.column:last-child {
 - **You don't know the repo owner** — how do you safely hand your change back?
 - No direct push, no trust — and yet the world ships this way every day
 
-![w:760](assets/fork-button.svg)
+<!-- ![w:960](assets/fork-button.png) -->
+![w:1100](assets/playground-overview.png)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/typo-drowned.svg)
+![w:570](assets/typo-drowned.png)
 
-## 03 · The typo that drowns
+## 03 · Bug report, drowned
 
 ### WHAT HAPPENED
 
-You spot a typo in a project README. You mention it in the group chat
+- You spotted a typo in a project README
+- You reported it in the group chat
+- **DROWNED by other messages.**
 
 <br/>
 
@@ -119,21 +122,7 @@ Where should problem reports / feature requests live, so they don't get lost?
 <!-- _class: side -->
 <!-- Screenshot focus: right sidebar (labels/assignees/milestone) — image LEFT -->
 
-<style scoped>
-section.side {
-  padding-left: 620px;
-}
-section.side img {
-  right: auto;
-  left: 0;
-}
-section.side h4 {
-  left: auto;
-  right: 84px;
-}
-</style>
-
-![w:540](assets/issues-list.svg)
+![w:560](assets/issues-list.png)
 
 ## 04 · Issues
 
@@ -153,27 +142,13 @@ Too easy to lose in a chat group.
 
 <!-- _class: side -->
 
-<style scoped>
-section.side {
-  padding-left: 620px;
-}
-section.side img {
-  right: auto;
-  left: 0;
-}
-section.side h4 {
-  left: auto;
-  right: 84px;
-}
-</style>
-
-![w:540](assets/new-issue.svg)
+![w:540](assets/new-issue.png)
 
 ## 05 · Create an Issue
 
 ### YOUR TURN
 
-Open a new issue on the playground repo — propose an improvement, two or three lines, a clear title.
+Open a new issue on the playground repo — propose a **profile addition** with a clear title & a short description.
 
 <br/>
 
@@ -187,18 +162,18 @@ Open a new issue on the playground repo — propose an improvement, two or three
 
 <!-- Regular content page: screenshot focus is the error banner at the top — image below -->
 
-## 06 · Problem: push denied
+## 06 · Problem: modification denied
 
 ### WHAT HAPPENED
 
-The fix is ready, you hit push — `permission denied`.
+You tried to add a file directly to our repo — `permission denied`.
 Of course: the repository is not yours, and that is a feature, not a bug.
 
 ### THE QUESTION
 
 How do you get your own copy to work on?
 
-![w:760](assets/push-denied.svg)
+![w:820](assets/push-denied.png)
 
 #### DENIED
 
@@ -221,7 +196,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/fork-button.svg)
+![w:540](assets/fork-button.png)
 
 ## 07 · Fork: copy it home
 
@@ -385,22 +360,39 @@ Problem → issue → fix → PR → merge → closed. That is open source.
 
 ---
 
-<!-- _class: side -->
-<!-- Diagram page: git graph, two experiments tangled on main — image right -->
+<!-- Regular content page: two scenario columns + takeaway below, image at the bottom -->
 
-![w:540](assets/tangled-main.svg)
+<style scoped>
+/* two equal scenario columns, top-aligned (theme centres vertically) */
+div.columns {
+  align-items: flex-start;
+}
+</style>
 
-## 15 · Problem: one main, two experiments
+## 15 · A NEW Branch, Why?
 
-### WHAT HAPPENED
+<div class="columns">
+<div class="column">
 
-The lazy path is editing main directly — until your half-finished idea, your typo fix, and the upstream sync all tangle on the same line of history.
+### YOUR OWN PROJECT
 
-<br/>
+Branch off `main`, build the change, open a PR into **your own `main`**.
 
-### THE QUESTION
+</div>
+<div class="column">
 
-How do we keep every change in its own lane?
+### CONTRIBUTE UPSTREAM
+
+Branch in your fork, open a PR into **upstream's `main`** or any recommended
+
+</div>
+</div>
+
+### EITHER WAY, ALL ROADS END IN `main`
+
+You seldom commit straight onto your own `main`
+
+![w:660](assets/tangled-main.png)
 
 ---
 
@@ -444,7 +436,7 @@ Open the Actions tab in your fork — step-by-step logs.
 
 ![w:540](assets/checks.svg)
 
-## 18 · Red cross is a safety net
+## 18 · Red X - a safety net
 
 ### CAUGHT IN THE ACT
 
