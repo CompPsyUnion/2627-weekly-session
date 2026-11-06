@@ -196,7 +196,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/fork-button.png)
+![w:580](assets/fork-button.png)
 
 ## 07 · Fork: copy it home
 
@@ -274,11 +274,9 @@ Create a `docs/...` branch before adding any files — `docs/yourusername-add-pr
 
 GitHub notices your branch is ahead and offers to propose the merge.
 
-### READ THE DIRECTION
+Note: Branches, PR Title, Body (use `Closing keywords`)
 
-base ← upstream `main` · compare ← your fork's branch.
-
-![w:760](assets/compare-pr.svg)
+![w:760](assets/compare-pr.png)
 
 #### PR
 
@@ -302,13 +300,13 @@ A PR is a request for review.
 - **Files changed** — line-by-line diff
 - **Checks** — **Actions** done by bots.
 
-![w:540](assets/pr-tabs.svg)
+![w:560](assets/pr-tabs.png)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/wall-of-lines.svg)
+![w:560](assets/wall-of-lines.png)
 
 ## 12 · Problem: a wall of lines
 
@@ -341,7 +339,7 @@ section.side h4 {
 }
 </style>
 
-![w:540](assets/review-buttons.svg)
+![w:570](assets/review-buttons.png)
 
 ## 13 · Review
 
@@ -361,7 +359,7 @@ Review the code, not the person; describe what and why.
 
 <!-- _class: side -->
 
-![w:540](assets/merge-dropdown.svg)
+![w:540](assets/merge-dropdown.png)
 
 ## 14 · Merge: three shapes of history
 
@@ -381,13 +379,13 @@ Nobody clicks — the robot squash-merges every PR that passes the checks.
 
 <!-- _class: side -->
 
-![w:540](assets/checks.svg)
+![w:540](assets/closing-keyword.png)
 
 ## 15 · Fixes #N — the loop closes
 
 ### THE CLIMAX
 
-A PR whose description says `Fixes #N` closes issue #N the moment it merges.
+A PR whose commit message says `Fixes #N` closes issue `#N` the moment it merges.
 
 <br/>
 
@@ -443,17 +441,15 @@ You seldom commit straight onto your own `main`
 
 You open the PR page — a spinner spins, then a green tick or a red cross appears. Nobody clicked anything; the merge is blocked.
 
-### THE QUESTION
+- Who — or what — is checking the code?
 
-Who — or what — is checking the code?
-
-![w:760](assets/mystery-stamp.svg)
+![w:960](assets/mystery-stamp.png)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/actions-log.svg)
+![w:540](assets/actions-log.png)
 
 ## 18 · Actions: bot colleague
 
@@ -473,7 +469,7 @@ Open the Actions tab in your fork — step-by-step logs.
 
 <!-- _class: side -->
 
-![w:540](assets/checks.svg)
+![w:560](assets/checks.png)
 
 ## 19 · Red X - a safety net
 
@@ -493,7 +489,7 @@ The robot stops problems before they reach main.
 
 <!-- _class: side -->
 
-![w:540](assets/share-problem.svg)
+![w:550](assets/share-problem.png)
 
 ## 20 · Site written, host it?
 
@@ -542,19 +538,6 @@ Avatars straight from `github.com/<username>.png` — rebuilt by CI on every mer
 ### VISIT EACH OTHER
 
 Post your `username.github.io/github-playground` link in the group.
-
----
-
-<!-- Regular content page -->
-
-## 23 · Final exercise: connect the dots
-
-- New branch → edit `docs/` → commit → **PR to your own repo**
-- Checks run again → merge → the website updates itself
-
-![w:760](assets/roster.svg)
-
-*Change → robot checks → deploy. You built the whole pipeline.*
 
 ---
 
