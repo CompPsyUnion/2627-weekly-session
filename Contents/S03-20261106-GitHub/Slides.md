@@ -511,21 +511,19 @@ How does a repository become a plain link?
 
 ## 21 · Pages: repo becomes a website
 
-### FREE HOSTING
+### THE ROBOT MOVED IN WITH YOU
 
-Settings → Pages → Deploy from a branch → `main` / `/docs`.
+Your fork carries the same workflows — GitHub just parks them. Open your fork's **Actions** tab and click **Allow** (*I understand my workflows, go ahead and enable them*).
 
-### UPSTREAM vs FORK
+Press **Sync fork** — upstream's `main` lands on yours, CI wakes up by itself and your copy of the site deploys.
 
-Upstream deploys automatically via Actions; in your fork, you flip the switch once.
-
-![w:760](assets/pages-settings.svg)
+![w:860](assets/actions-allow.png)
 
 ---
 
 <!-- _class: side -->
 
-![w:540](assets/roster.svg)
+![w:540](assets/roster.png)
 
 ## 22 · The roster page
 
@@ -537,7 +535,7 @@ Avatars straight from `github.com/<username>.png` — rebuilt by CI on every mer
 
 ### VISIT EACH OTHER
 
-Post your `username.github.io/github-playground` link in the group.
+Your roster now lives at `username.github.io/github-playground` — post the link in the group.
 
 ---
 
