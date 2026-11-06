@@ -297,8 +297,8 @@ A PR is a request for review.
 
 - **Conversation** — the whole story
 - **Commits** — the saves
-- **Files changed** — line-by-line diff
 - **Checks** — **Actions** done by bots.
+- **Files changed** — line-by-line diff
 
 ![w:560](assets/pr-tabs.png)
 
