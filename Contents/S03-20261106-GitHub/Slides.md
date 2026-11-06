@@ -213,23 +213,62 @@ section.side h4 {
 
 <!-- Regular content page: screenshot focus is the Add file bar at the top — image below -->
 
-## 08 · Branch first, then edit
+## 08 · Branch first
 
-### RULE FIRST, REASONS LATER
+### TAKE THIS AS A RULE FIRST
 
-For now, take it as a rule: one change lives on its own branch — `docs/add-<your-username>`. You will see why once merge and sync enter the picture.
+Create a `docs/...` branch before adding any files — `docs/yourusername-add-profile`.
+
+![w:960](assets/create-branch.png)
+
+---
+
+<!-- Regular content page: four-step screenshot strip, equal height -->
+
+<style scoped>
+/* four workflow screenshots in one equal-height row */
+.shotrow {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 26px;
+  /* lift the strip above the theme's dashed blueprint guides */
+  position: relative;
+  z-index: 1;
+}
+.shotrow p {
+  margin: 0;
+}
+.shotrow img {
+  height: 270px;
+  width: auto;
+}
+</style>
+
+## 09 · Add your profile on the new branch
 
 ### HANDS-ON
 
-`profiles/` → **Add file → Create new file** → `<your-username>.md` → commit on a new branch.
+**Go to your new branch's homepage** → `profiles/` → **Add file → Create new file** → `<your-username>.md` → commit.
 
-![w:760](assets/create-file.svg)
+<div class="shotrow">
+
+![Click your new branch in the branch list](assets/branch-list-page.png)
+
+![Your branch's homepage](assets/branch-page.png)
+
+![Create new file under profiles/](assets/create-new-file.png)
+
+![Commit new file on the branch](assets/commit-new-file.png)
+
+</div>
 
 ---
 
 <!-- Regular content page: screenshot focus is the base/compare dropdowns at the top — image below -->
 
-## 09 · Pull Request: the letter
+## 10 · Pull Request: the letter
 
 ### COMPARE & PULL REQUEST
 
@@ -248,7 +287,7 @@ base ← upstream `main` · compare ← your fork's branch.
 <!-- _class: side -->
 <!-- Screenshot focus: the PR tab bar, top of the page — image right -->
 
-## 10 · Anatomy of a pull request
+## 11 · Anatomy of a pull request
 
 ### NOT A COMMAND
 
@@ -271,7 +310,7 @@ A PR is a request for review.
 
 ![w:540](assets/wall-of-lines.svg)
 
-## 11 · Problem: a wall of lines
+## 12 · Problem: a wall of lines
 
 ### WHAT HAPPENED
 
@@ -304,7 +343,7 @@ section.side h4 {
 
 ![w:540](assets/review-buttons.svg)
 
-## 12 · Review
+## 13 · Review
 
 ### ON STAGE
 
@@ -324,7 +363,7 @@ Review the code, not the person; describe what and why.
 
 ![w:540](assets/merge-dropdown.svg)
 
-## 13 · Merge: three shapes of history
+## 14 · Merge: three shapes of history
 
 ### PICK ONE
 
@@ -344,7 +383,7 @@ Nobody clicks — the robot squash-merges every PR that passes the checks.
 
 ![w:540](assets/checks.svg)
 
-## 14 · Fixes #N — the loop closes
+## 15 · Fixes #N — the loop closes
 
 ### THE CLIMAX
 
@@ -369,7 +408,7 @@ div.columns {
 }
 </style>
 
-## 15 · A NEW Branch, Why?
+## 16 · A NEW Branch, Why?
 
 <div class="columns">
 <div class="column">
@@ -398,7 +437,7 @@ You seldom commit straight onto your own `main`
 
 <!-- Regular content page: screenshot focus is the checks banner at the top — image below -->
 
-## 16 · The mystery stamp?
+## 17 · The mystery stamp?
 
 ### WHAT HAPPENED
 
@@ -416,7 +455,7 @@ Who — or what — is checking the code?
 
 ![w:540](assets/actions-log.svg)
 
-## 17 · Actions: bot colleague
+## 18 · Actions: bot colleague
 
 ### CHECKS EXPLAINED
 
@@ -436,7 +475,7 @@ Open the Actions tab in your fork — step-by-step logs.
 
 ![w:540](assets/checks.svg)
 
-## 18 · Red X - a safety net
+## 19 · Red X - a safety net
 
 ### CAUGHT IN THE ACT
 
@@ -456,7 +495,7 @@ The robot stops problems before they reach main.
 
 ![w:540](assets/share-problem.svg)
 
-## 19 · Site written, host it?
+## 20 · Site written, host it?
 
 ### WHAT HAPPENED
 
@@ -474,7 +513,7 @@ How does a repository become a plain link?
 
 <!-- Regular content page: screenshot focus is the "site is live" banner at the top — image below -->
 
-## 20 · Pages: repo becomes a website
+## 21 · Pages: repo becomes a website
 
 ### FREE HOSTING
 
@@ -492,7 +531,7 @@ Upstream deploys automatically via Actions; in your fork, you flip the switch on
 
 ![w:540](assets/roster.svg)
 
-## 21 · The roster page
+## 22 · The roster page
 
 ### ONE CARD PER PROFILE
 
@@ -508,7 +547,7 @@ Post your `username.github.io/github-playground` link in the group.
 
 <!-- Regular content page -->
 
-## 22 · Final exercise: connect the dots
+## 23 · Final exercise: connect the dots
 
 - New branch → edit `docs/` → commit → **PR to your own repo**
 - Checks run again → merge → the website updates itself
