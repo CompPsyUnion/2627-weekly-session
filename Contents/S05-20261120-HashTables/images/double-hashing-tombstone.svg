@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="920" height="340" font-family="system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <marker id="arr-err" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 Z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-ok" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 Z" fill="#16a34a"/>
+    </marker>
+  </defs>
+
+  <rect width="920" height="340" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="460" y="34" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">开放寻址中的删除：为什么需要“墓碑（Tombstone）”删除标记？</text>
+
+  <!-- Scenario 1: Direct Empty (Wrong) -->
+  <rect x="24" y="52" width="872" height="128" rx="8" fill="#ffffff" stroke="#fecaca" stroke-width="1.5"/>
+  <text x="44" y="78" font-size="14" font-weight="bold" fill="#dc2626">❌ 错误做法：删除槽 0 的 22 后直接设为空槽（·）→ 查找 44（起点 0，步长 5）在槽 0 断链，误判不存在</text>
+
+  <g transform="translate(44, 120)">
+    <!-- Slots 0..6 -->
+    <g>
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#dc2626" font-weight="bold">槽 0（被清空）</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#fef2f2" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,2"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" font-weight="bold" fill="#dc2626">· (空)</text>
+    </g>
+    <g transform="translate(88, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#64748b">槽 1</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#334155">55</text>
+    </g>
+    <g transform="translate(176, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#64748b">槽 2</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#334155">33</text>
+    </g>
+    <g transform="translate(264, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#94a3b8">槽 3</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#94a3b8">·</text>
+    </g>
+    <g transform="translate(352, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#94a3b8">槽 4</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#94a3b8">·</text>
+    </g>
+    <g transform="translate(440, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#7c3aed" font-weight="bold">槽 5（目标 44）</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" font-weight="bold" fill="#5b21b6">44</text>
+    </g>
+
+    <!-- Stop indicator -->
+    <text x="530" y="24" font-size="13" font-weight="bold" fill="#dc2626">⚡ 探测槽 0 看到“从未使用的空槽”，提前停止并返回“44 不存在”！</text>
+  </g>
+
+  <!-- Scenario 2: Tombstone (Correct) -->
+  <rect x="24" y="196" width="872" height="128" rx="8" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="44" y="222" font-size="14" font-weight="bold" fill="#16a34a">✅ 正确做法：删除槽 0 的 22 后留下删除标记（DEL / 墓碑）→ 查找时跨过墓碑继续按步长 +5 探测，成功命中 44</text>
+
+  <g transform="translate(44, 264)">
+    <!-- Arc from 0 to 5 -->
+    <path d="M 32,-18 Q 252,-56 468,-18" fill="none" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arr-ok)"/>
+    <text x="252" y="-36" text-anchor="middle" font-size="12" font-weight="bold" fill="#16a34a">看到 DEL 不停，按步长 +5 继续跳到槽 5</text>
+
+    <!-- Slots 0..5 -->
+    <g>
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#d97706" font-weight="bold">槽 0（墓碑）</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+      <text x="32" y="24" text-anchor="middle" font-size="13" font-weight="bold" fill="#b45309">DEL</text>
+    </g>
+    <g transform="translate(88, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#64748b">槽 1</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#334155">55</text>
+    </g>
+    <g transform="translate(176, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#64748b">槽 2</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#334155">33</text>
+    </g>
+    <g transform="translate(264, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#94a3b8">槽 3</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#94a3b8">·</text>
+    </g>
+    <g transform="translate(352, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#94a3b8">槽 4</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" fill="#94a3b8">·</text>
+    </g>
+    <g transform="translate(440, 0)">
+      <text x="32" y="-6" text-anchor="middle" font-size="12" fill="#16a34a" font-weight="bold">槽 5（命中！）</text>
+      <rect x="0" y="0" width="64" height="38" rx="5" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+      <text x="32" y="24" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534">44</text>
+    </g>
+
+    <text x="530" y="24" font-size="13" font-weight="bold" fill="#16a34a">✔ 探测路径不断链，在槽 5 比较 Key 相等，正确返回结果！</text>
+  </g>
+</svg>

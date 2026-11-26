@@ -1,0 +1,2639 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>从 Git Commit 到哈希表 · CPU 周常分享</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@500;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   Include this ENTIRE file in every presentation.
+   Slides are authored at 1920×1080 and scaled as a whole.
+   =========================================== */
+
+      /* 1. Lock the browser viewport */
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--stage-bg, #000);
+      }
+
+      /* 2. Full-window deck viewport */
+      .deck-viewport {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background: var(--stage-bg, #000);
+      }
+
+      /* 3. Fixed 16:9 design canvas.
+   JavaScript sets transform: translate(...) scale(...). */
+      .deck-stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        transform-origin: 0 0;
+        background: var(--slide-bg, #fff);
+      }
+
+      /* 4. Slides stack inside the fixed stage.
+   Content must be laid out at 1920×1080, not reflowed per device. */
+      .slide {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        display: block;
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        background: var(--slide-bg, #fff);
+      }
+
+      .slide.active,
+      .slide.visible {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+      }
+
+      /* 5. Keep media inside authored slide bounds */
+      img,
+      video,
+      canvas,
+      svg {
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      /* 6. Presentation chrome stays outside the slide design system */
+      .deck-controls {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%);
+        z-index: 1000;
+      }
+
+      /* 7. Print one fixed-size slide per page */
+      @media print {
+        html,
+        body {
+          width: 1920px;
+          height: auto;
+          overflow: visible;
+          background: #fff;
+        }
+
+        .deck-viewport {
+          position: static;
+          overflow: visible;
+          background: #fff;
+        }
+
+        .deck-stage {
+          position: static;
+          width: auto;
+          height: auto;
+          transform: none !important;
+          background: none;
+        }
+
+        .slide {
+          position: relative;
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+          width: 1920px;
+          height: 1080px;
+          break-after: page;
+          page-break-after: always;
+        }
+
+        .slide:last-child {
+          break-after: auto;
+          page-break-after: auto;
+        }
+
+        .deck-controls {
+          display: none !important;
+        }
+      }
+
+      /* 8. Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.2s !important;
+        }
+      }
+
+      /* === CPU poster typography and palette === */
+      :root {
+        --ink: #171815;
+        --paper: #f8f7ef;
+        --yellow: #f7d447;
+        --slide-bg: var(--paper);
+        --stage-bg: #20211d;
+        --line: #aaa99e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        color: var(--ink);
+        font-family: "Barlow", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+      .slide {
+        padding: 70px 104px 100px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 3px solid var(--ink);
+        padding-bottom: 17px;
+        font-size: 26px;
+        font-weight: 650;
+        letter-spacing: 0.05em;
+      }
+      header b {
+        font-family: "Archivo Black", "Helvetica Neue", sans-serif;
+        letter-spacing: -0.05em;
+        font-size: 38px;
+        font-weight: 900;
+      }
+      header span:before {
+        content: "";
+        display: inline-block;
+        width: 28px;
+        height: 16px;
+        margin-right: 16px;
+        background: var(--yellow);
+        border: 2px solid var(--ink);
+      }
+      h1,
+      h2 {
+        margin: 45px 0 34px;
+        font-size: 76px;
+        line-height: 1.16;
+        letter-spacing: -0.045em;
+        font-weight: 850;
+      }
+      .content {
+        display: grid;
+        gap: 25px;
+        align-content: start;
+      }
+      .lead,
+      dd,
+      .lab p {
+        font-size: 33px;
+        line-height: 1.55;
+        margin: 0;
+      }
+      .eq,
+      pre {
+        margin: 0;
+        background: var(--ink);
+        color: #fff9da;
+        padding: 30px 38px;
+        border-left: 14px solid var(--yellow);
+        font:
+          500 43px/1.45 "IBM Plex Mono",
+          Menlo,
+          "PingFang SC",
+          monospace;
+        letter-spacing: -0.03em;
+      }
+      pre {
+        font-size: 35px;
+      }
+      pre.code {
+        font-size: 29px;
+        line-height: 1.38;
+        padding: 22px 34px;
+      }
+      dl {
+        margin: 0;
+      }
+      dl > div {
+        display: grid;
+        grid-template-columns: 355px 1fr;
+        gap: 28px;
+        padding: 22px 0;
+        border-top: 2px solid var(--line);
+      }
+      dt {
+        font-size: 34px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 32px;
+        text-align: left;
+        line-height: 1.4;
+      }
+      th,
+      td {
+        padding: 17px 24px;
+        border-bottom: 2px solid var(--line);
+      }
+      th {
+        background: var(--yellow);
+        font-size: 29px;
+      }
+      td:first-child {
+        font-weight: 720;
+      }
+      code {
+        font-size: 0.95em;
+      }
+      .slots {
+        display: flex;
+        gap: 6px;
+      }
+      .cell {
+        flex: 1;
+        border: 2px solid var(--ink);
+        padding: 10px 14px;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .cell small {
+        display: block;
+        font:
+          22px Menlo,
+          monospace;
+        color: #55574c;
+      }
+      .cell strong {
+        display: block;
+        text-align: center;
+        font:
+          700 44px/1.5 Menlo,
+          monospace;
+      }
+      .used {
+        background: var(--yellow);
+      }
+      .cell .reveal {
+        display: none;
+      }
+      details[open] ~ .slots .cell.pending {
+        background: var(--yellow);
+        border-style: dashed;
+      }
+      details[open] ~ .slots .cell.pending .placeholder {
+        display: none;
+      }
+      details[open] ~ .slots .cell.pending .reveal {
+        display: block;
+      }
+      .slide:has(details ~ .slots) .content {
+        gap: 16px;
+      }
+      .slide:has(details ~ .slots) h2 {
+        margin: 32px 0 22px;
+      }
+      .slide:has(details ~ .slots) .eq {
+        padding: 18px 34px;
+      }
+      .slide:has(details ~ .slots) dl > div {
+        padding: 12px 0;
+      }
+      .diagram {
+        display: block;
+        justify-self: center;
+        width: 100%;
+        height: auto;
+        max-height: 700px;
+        max-width: 1712px;
+      }
+      .slide:has(.diagram ~ .lead) .diagram {
+        max-height: 620px;
+      }
+      .slide:has(.diagram) .content {
+        gap: 18px;
+      }
+      .slide:has(.diagram) h2 {
+        margin: 34px 0 18px;
+      }
+      .cover,
+      .last {
+        background: var(--yellow);
+      }
+      .cover header span:before,
+      .last header span:before {
+        background: var(--ink);
+      }
+      .cover h1 {
+        font-size: 142px;
+        line-height: 1.06;
+        margin: 218px 0 0;
+      }
+      .divider {
+        background: var(--yellow);
+      }
+      .divider header span:before {
+        background: var(--ink);
+      }
+      .divider .part {
+        margin: 190px 0 18px;
+        font:
+          800 34px/1 "IBM Plex Mono",
+          Menlo,
+          monospace;
+        letter-spacing: 0.08em;
+      }
+      .divider h2 {
+        font-size: 112px;
+        line-height: 1.08;
+        margin: 0 0 28px;
+      }
+      .divider .lead {
+        font-size: 38px;
+        max-width: 1200px;
+      }
+      .subdivider {
+        border-left: 28px solid var(--yellow);
+      }
+      .subdivider .part {
+        display: inline-block;
+        margin: 190px 0 24px;
+        padding: 10px 22px;
+        background: var(--ink);
+        color: var(--yellow);
+        font:
+          800 30px/1 "IBM Plex Mono",
+          Menlo,
+          monospace;
+        letter-spacing: 0.08em;
+      }
+      .subdivider h2 {
+        font-size: 106px;
+        line-height: 1.08;
+        margin: 0 0 28px;
+      }
+      .subdivider .lead {
+        font-size: 38px;
+        max-width: 1200px;
+      }
+      /* === Experiment and navigation === */
+      .lab {
+        display: grid;
+        grid-template-columns: 0.85fr 1.5fr;
+        gap: 55px;
+      }
+      .lab label {
+        display: inline-block;
+        font-size: 31px;
+        margin: 16px 24px 35px 0;
+      }
+      .lab select,
+      summary {
+        font: inherit;
+        cursor: pointer;
+        background: var(--yellow);
+        border: 2px solid var(--ink);
+        padding: 9px 16px;
+        color: var(--ink);
+      }
+      .lab p {
+        margin-bottom: 28px;
+      }
+      #pairs {
+        font-size: 30px;
+        line-height: 1.7;
+        border-top: 3px solid;
+        padding-top: 20px;
+      }
+      .lab table {
+        font-size: 28px;
+        font-family: Menlo, monospace;
+      }
+      .lab td,
+      .lab th {
+        padding: 10px 16px;
+      }
+      .collision {
+        background: #ffed9c;
+        font-weight: bold;
+      }
+      details {
+        font-size: 32px;
+      }
+      summary {
+        width: max-content;
+        margin-bottom: 13px;
+      }
+      nav {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 16px 104px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--ink);
+        color: var(--paper);
+        z-index: 9;
+        font:
+          24px Menlo,
+          "PingFang SC",
+          sans-serif;
+      }
+      nav div {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+      }
+      nav button,
+      nav select {
+        font: inherit;
+        color: inherit;
+        background: transparent;
+        border: 1px solid #85877d;
+        padding: 5px 15px;
+        cursor: pointer;
+      }
+      nav option {
+        color: var(--ink);
+        background: var(--paper);
+      }
+      nav button:disabled {
+        opacity: 0.35;
+      }
+      nav select {
+        max-width: 535px;
+      }
+      #progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 4px;
+        background: var(--yellow);
+        transition: width 0.2s;
+      }
+      .active .content {
+        animation: arrive 0.28s ease-out both;
+      }
+      @keyframes arrive {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @page {
+        size: 1920px 1080px;
+        margin: 0;
+      }
+      @media print {
+        nav {
+          display: none;
+        }
+        details > *:not(summary) {
+          display: block !important;
+        }
+        .cell.pending {
+          background: var(--yellow);
+          border-style: dashed;
+        }
+        .cell.pending .placeholder {
+          display: none;
+        }
+        .cell.pending .reveal {
+          display: block;
+        }
+        * {
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck-viewport">
+      <div class="deck-stage">
+        <!-- 第 01 页 · 从 Git Commit 到哈希表 -->
+        <section class="slide cover active">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>CPU 周常分享</span>
+          </header>
+          <h1>
+            从 Git Commit
+            <br />
+            到哈希表
+          </h1>
+        </section>
+
+        <!-- 话题 01 · 键与值 -->
+        <section class="slide divider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>话题 01</span>
+          </header>
+          <p class="part">PART 01</p>
+          <h2>键与值</h2>
+          <p class="lead">从按姓名查成绩出发，看清哈希表要解决的核心问题。</p>
+        </section>
+
+        <!-- 第 03 页 · 十万份成绩，怎样查到 Alice 的分数？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>键与值</span>
+          </header>
+          <h2>十万份成绩，怎样查到 Alice 的分数？</h2>
+          <div class="content">
+            <div class="eq">alice → 92　　 bob → 85　　 chen → 97</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>存储方式</th>
+                  <th>按姓名查找</th>
+                  <th>插入一条记录</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>普通列表</td>
+                  <td>逐项比较，最多 10 万次</td>
+                  <td>可以追加到末尾</td>
+                </tr>
+                <tr>
+                  <td>按姓名排序的数组</td>
+                  <td>二分查找，约 17 次</td>
+                  <td>为新记录腾出位置，最坏 O(n)</td>
+                </tr>
+                <tr>
+                  <td>按整数下标访问的数组</td>
+                  <td>已知下标即可直接读取</td>
+                  <td>如何把姓名换成合法下标？</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 话题 02 · Git 与内容寻址 -->
+        <section class="slide divider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>话题 02</span>
+          </header>
+          <p class="part">PART 02</p>
+          <h2>Git 与内容寻址</h2>
+          <p class="lead">同一份内容算出同一个编号，小改动得到完全不同的编号。</p>
+        </section>
+
+        <!-- 第 05 页 · Git 怎样标识一次提交？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>Git 与内容寻址</span>
+          </header>
+          <h2>Git 怎样标识一次提交？</h2>
+          <div class="content">
+            <p class="lead">
+              在有提交记录的仓库里运行第一条命令。找到 commit
+              后面那串十六进制字符，它就是这次提交的标识符（Commit ID）。
+            </p>
+            <pre>
+git log -1 --format=fuller
+git cat-file -p HEAD</pre>
+            <dl>
+              <div>
+                <dt>这串字符从哪来？</dt>
+                <dd>
+                  第二条命令展示提交对象的内容，包括文件快照的引用、父提交引用（如有）、作者、提交者、时间和提交说明。Git
+                  对编码后的对象求哈希，得到这个 ID。
+                </dd>
+              </div>
+              <div>
+                <dt>怎样找回提交？</dt>
+                <dd>
+                  把第二条命令中的 HEAD 换成刚看到的
+                  ID，就能读回同一个提交对象。如果只改提交说明，重新计算的 ID 通常也会改变。
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 06 页 · 给 hello 加上一个感叹号 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>Git 与内容寻址</span>
+          </header>
+          <h2>给 hello 加上一个感叹号</h2>
+          <div class="content">
+            <pre>
+printf 'hello\n'  | git hash-object --stdin
+printf 'hello\n'  | git hash-object --stdin
+printf 'hello!\n' | git hash-object --stdin</pre>
+            <table>
+              <thead>
+                <tr>
+                  <th>输入（含换行）</th>
+                  <th>Git blob 对象 ID（SHA-1 示例）</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>hello\n</td>
+                  <td><code>ce013625030ba8dba906f756967f9e9ca394464a</code></td>
+                </tr>
+                <tr>
+                  <td>hello!\n</td>
+                  <td><code>4effa19f4f75f846c3229b9dbdbad14eff362f32</code></td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="lead">
+              哈希函数能把任意内容算成固定长度的哈希值，相同内容算出的结果相同。Git
+              直接用这串长哈希值标识对象；如果把它放进长度只有 m 的数组，就引出了哈希表。
+            </p>
+          </div>
+        </section>
+
+        <!-- 第 07 页 · 什么是哈希表？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>从哈希值到哈希表</span>
+          </header>
+          <h2>什么是哈希表？</h2>
+          <div class="content">
+            <p class="lead">
+              <strong>哈希表（Hash Table，又称散列表）</strong>是一种根据<strong>键（Key）</strong>直接计算存储位置、从而快速存取数据的数据结构。
+            </p>
+            <div class="eq">任意 Key ("alice")　─[ 换算下标 ]→　候选位置 i　─[ 核对 Key ]→　Value (92)</div>
+            <dl>
+              <div>
+                <dt>底层数组（桶 / 槽位）</dt>
+                <dd>长度为 m、下标从 0 到 m − 1 的连续空间，用来实际存放键值对记录。</dd>
+              </div>
+              <div>
+                <dt>哈希函数</dt>
+                <dd>把任意可哈希的键转换为整数哈希值，再压缩为合法的数组下标。</dd>
+              </div>
+              <div>
+                <dt>冲突处理机制</dt>
+                <dd>当两个不同的键算出了同一个下标时，约定它们的存放与查找规则。</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 08 页 · 哈希表把查找缩小到候选位置 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>从哈希值到哈希表</span>
+          </header>
+          <h2>哈希表把查找缩小到候选位置</h2>
+          <div class="content">
+            <div class="eq">Key　→　H(Key)　→　H(Key) % m　→　桶或槽位</div>
+            <dl>
+              <div>
+                <dt>取余压缩（% m）</dt>
+                <dd>将哈希值 H(Key) 除以表长 m 取余，把结果限制在 0 到 m − 1 的数组下标范围内。</dd>
+              </div>
+              <div>
+                <dt>核对候选位置</dt>
+                <dd>不同键可能落入同一个位置，因此每条记录仍需保存 Key，到达候选位置后要先比对键是否相等。</dd>
+              </div>
+            </dl>
+            <p class="lead">
+              接下来我们打开 <code>H(Key)</code> 的黑盒，亲手算一个把字符串变成数组下标的哈希函数，看看不同键什么时候会落入同一个桶。
+            </p>
+          </div>
+        </section>
+
+        <!-- 话题 03 · 字符串哈希与碰撞 -->
+        <section class="slide divider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>话题 03</span>
+          </header>
+          <p class="part">PART 03</p>
+          <h2>字符串哈希与碰撞</h2>
+          <p class="lead">把字符串算成整数，再取模放进有限个桶。</p>
+        </section>
+
+        <!-- 第 06 页 · 怎样让字符的位置影响结果？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>字符串哈希</span>
+          </header>
+          <h2>怎样让字符的位置影响结果？</h2>
+          <div class="content">
+            <p class="lead">
+              直接相加时，cat 与 act 的字符编码之和相等。逐字符乘上底数
+              B，较早读入的字符就有更高的位权。
+            </p>
+            <div class="eq">h ← h × B + ASCII(c)</div>
+            <dl>
+              <div>
+                <dt>初值</dt>
+                <dd>令 h = 0，从左向右扫描。三个字符的结果为 c₀ × B² + c₁ × B + c₂。</dd>
+              </div>
+              <div>
+                <dt>参数</dt>
+                <dd>本例取 B = 31，也可以试 131。最后用 H(s) % m 计算桶下标。</dd>
+              </div>
+            </dl>
+            <p class="lead">
+              ASCII(c) 是字符的标准数字编码，例如 <code>'A'</code> 为 65，<code>'a'</code> 为 97（后续字母依次加 1）。
+            </p>
+          </div>
+        </section>
+
+        <!-- 第 07 页 · 手算 cat 会落入哪个桶 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>字符串哈希</span>
+          </header>
+          <h2>计算 cat 会落入哪个桶</h2>
+          <div class="content">
+            <table>
+              <thead>
+                <tr>
+                  <th>读入字符</th>
+                  <th>递推计算</th>
+                  <th>当前 h</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>c</td>
+                  <td>0 × 31 + 99</td>
+                  <td>99</td>
+                </tr>
+                <tr>
+                  <td>a</td>
+                  <td>99 × 31 + 97</td>
+                  <td>3166</td>
+                </tr>
+                <tr>
+                  <td>t</td>
+                  <td>3166 × 31 + 116</td>
+                  <td>98262</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="eq">98262 % 7 = 3　→　到桶 3 比较 Key</div>
+            <p class="lead">交换前两个字符，H(act) = (97 × 31 + 99) × 31 + 116 = 96402。</p>
+          </div>
+        </section>
+
+        <!-- 第 08 页 · 哪些单词会撞进同一个桶？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>碰撞实验</span>
+          </header>
+          <h2>哪些单词会撞进同一个桶？</h2>
+          <div class="content">
+            <div class="lab">
+              <div>
+                <label>
+                  底数 B
+                  <select id="base">
+                    <option>31</option>
+                    <option>131</option>
+                  </select>
+                </label>
+                <label>
+                  桶数 m
+                  <select id="buckets">
+                    <option>7</option>
+                    <option>101</option>
+                  </select>
+                </label>
+                <label>
+                  测试词表
+                  <select id="dataset">
+                    <option value="words">8 个常见单词</option>
+                    <option value="aabb">加入 Aa 与 BB</option>
+                  </select>
+                </label>
+                <p>先把桶数改为 101，观察哪些键仍在撞桶；再切换词表，观察 Aa 与 BB 在 B = 31 与 131 下的表现。</p>
+                <div id="pairs" aria-live="polite"></div>
+              </div>
+              <div id="results"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 第 09 页 · 从八个单词推广到任意键 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>字符串哈希</span>
+          </header>
+          <h2>从八个单词推广到任意键</h2>
+          <div class="content">
+            <dl>
+              <div>
+                <dt>再次插入同一个键</dt>
+                <dd>再次插入 cat 时，字典找到原记录并更新值。</dd>
+              </div>
+              <div>
+                <dt>哈希值不同、桶相同</dt>
+                <dd>8 个不同的键放入 7 个桶，按鸽巢原理至少有两个同桶。增加桶数只能降低概率。</dd>
+              </div>
+              <div>
+                <dt>哈希值也可能相同</dt>
+                <dd>B = 31 时，H(Aa) = H(BB) = 2112。即使扩大桶数组，这两个键仍会同桶。</dd>
+              </div>
+              <div>
+                <dt>字符串匹配中的双值哈希</dt>
+                <dd>
+                  用两组底数与模数得到一对摘要，可降低误判概率。(注意双值哈希不是双哈希)
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 话题 04 · 哈希冲突处理 -->
+        <section class="slide divider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>话题 04</span>
+          </header>
+          <p class="part">PART 04</p>
+          <h2>哈希冲突处理</h2>
+          <p class="lead">两个键落进同一个桶：拉链法、线性探测与双哈希。</p>
+        </section>
+
+        <!-- 第 10 页 · 处理哈希冲突的三种方法 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 概览</span>
+          </header>
+          <h2>处理哈希冲突的三种方法</h2>
+          <div class="content">
+            <p class="lead">
+              表长为 11，键 22 和 33 除以 11 余数都是 0。先放入 22，再来的 33
+              放哪？工程上分“桶内挂链”与“开放寻址”两条路线：
+            </p>
+            <dl>
+              <div>
+                <dt>拉链法（桶内挂链）</dt>
+                <dd>留在同一个桶。把 33 接到桶 0 的链上，查找时沿链比较键。</dd>
+              </div>
+              <div>
+                <dt>线性探测（开放寻址）</dt>
+                <dd>在数组里逐格找。槽 0 已占用，就查看槽 1，若仍被占用，再查看槽 2。</dd>
+              </div>
+              <div>
+                <dt>双哈希（开放寻址）</dt>
+                <dd>在数组里按键决定的步长找。若第二个哈希函数给 33 的步长为 2，就依次查看槽 0、2、4，直到找到空槽。</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 冲突处理 · 方法一：拉链法 -->
+        <section class="slide subdivider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 01</span>
+          </header>
+          <p class="part">METHOD 01</p>
+          <h2>拉链法</h2>
+          <p class="lead">桶内挂一条链表，同桶元素顺着链存放。</p>
+        </section>
+
+        <!-- 第 11 页 · 桶 0 里可以存下三个键 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 拉链法</span>
+          </header>
+          <h2>桶 0 里可以存下三个键</h2>
+          <div class="content">
+            <div class="eq">桶 0　→　(22, A)　→　(33, B)　→　(44, C)</div>
+            <p class="lead">h(k) = k % 11。依次插入 22、33、44，三个键都挂到桶 0。</p>
+            <dl>
+              <div>
+                <dt>查找 33</dt>
+                <dd>比较 22，再比较 33，命中后返回 B。</dd>
+              </div>
+              <div>
+                <dt>查找 55</dt>
+                <dd>扫描到链尾仍未命中，返回不存在。</dd>
+              </div>
+              <div>
+                <dt>代价</dt>
+                <dd>桶内可单独删除记录。链表需要额外节点与指针，记录集中时需要逐项比较。</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 12 页 · 拉链法图示：每个桶挂一条链表 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 拉链法</span>
+          </header>
+          <h2>拉链法图示：每个桶挂一条链表</h2>
+          <div class="content">
+            <svg
+              class="diagram"
+              role="img"
+              aria-label="拉链法结构示意图：桶 0 挂接 22、33、44 链表，其余桶互不干扰"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 960 444"
+              width="960"
+              height="444"
+              font-family="'Barlow', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+            >
+              <defs>
+                <marker
+                  id="s12-arr-ink"
+                  markerWidth="7"
+                  markerHeight="7"
+                  refX="6"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <path d="M0,1 L6,3.5 L0,6 Z" fill="#171815" />
+                </marker>
+                <marker
+                  id="s12-arr-green"
+                  markerWidth="7"
+                  markerHeight="7"
+                  refX="6"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <path d="M0,1 L6,3.5 L0,6 Z" fill="#15803d" />
+                </marker>
+              </defs>
+
+              <rect
+                width="960"
+                height="444"
+                rx="4"
+                fill="#f8f7ef"
+                stroke="#171815"
+                stroke-width="2.5"
+              />
+              <text x="480" y="34" text-anchor="middle" font-size="19" font-weight="800" fill="#171815">
+                拉链法示意图：每个桶指向一条独立链表（h(k) = k % 11，表长 m = 11）
+              </text>
+
+              <text x="82" y="68" text-anchor="middle" font-size="14" font-weight="800" fill="#171815">
+                桶数组
+              </text>
+              <text x="275" y="68" text-anchor="middle" font-size="14" font-weight="800" fill="#171815">
+                链式节点（Key, Value）
+              </text>
+
+              <!-- Bucket 0 (highlighted) -->
+              <rect x="44" y="82" width="76" height="27" rx="3" fill="#f7d447" stroke="#171815" stroke-width="2.2" />
+              <text x="82" y="101" text-anchor="middle" font-size="14" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">桶 00</text>
+              <line x1="120" y1="95.5" x2="156" y2="95.5" stroke="#171815" stroke-width="2" marker-end="url(#s12-arr-ink)" />
+
+              <rect x="160" y="82" width="136" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="2" />
+              <text x="228" y="101" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">(22, A)</text>
+              <line x1="296" y1="95.5" x2="328" y2="95.5" stroke="#15803d" stroke-width="2.2" marker-end="url(#s12-arr-green)" />
+
+              <rect x="332" y="82" width="136" height="27" rx="3" fill="#dcfce7" stroke="#15803d" stroke-width="2.4" />
+              <text x="400" y="101" text-anchor="middle" font-size="14" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#15803d">(33, B)</text>
+              <line x1="468" y1="95.5" x2="500" y2="95.5" stroke="#171815" stroke-width="2" marker-end="url(#s12-arr-ink)" />
+
+              <rect x="504" y="82" width="136" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="2" />
+              <text x="572" y="101" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">(44, C)</text>
+              <line x1="640" y1="95.5" x2="670" y2="95.5" stroke="#78776e" stroke-width="1.8" marker-end="url(#s12-arr-ink)" />
+              <text x="698" y="101" text-anchor="middle" font-size="13.5" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">NULL</text>
+
+              <!-- Bucket 1 -->
+              <rect x="44" y="113" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="132" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 01</text>
+              <text x="142" y="132" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <!-- Bucket 2 -->
+              <rect x="44" y="144" width="76" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="1.8" />
+              <text x="82" y="163" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">桶 02</text>
+              <line x1="120" y1="157.5" x2="156" y2="157.5" stroke="#171815" stroke-width="2" marker-end="url(#s12-arr-ink)" />
+              <rect x="160" y="144" width="136" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="1.8" />
+              <text x="228" y="163" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">(13, D)</text>
+              <line x1="296" y1="157.5" x2="328" y2="157.5" stroke="#78776e" stroke-width="1.8" marker-end="url(#s12-arr-ink)" />
+              <text x="356" y="163" text-anchor="middle" font-size="13.5" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">NULL</text>
+
+              <!-- Bucket 3 -->
+              <rect x="44" y="175" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="194" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 03</text>
+              <text x="142" y="194" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <!-- Bucket 4 -->
+              <rect x="44" y="206" width="76" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="1.8" />
+              <text x="82" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">桶 04</text>
+              <line x1="120" y1="219.5" x2="156" y2="219.5" stroke="#171815" stroke-width="2" marker-end="url(#s12-arr-ink)" />
+              <rect x="160" y="206" width="136" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="1.8" />
+              <text x="228" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">(15, E)</text>
+              <line x1="296" y1="219.5" x2="328" y2="219.5" stroke="#171815" stroke-width="2" marker-end="url(#s12-arr-ink)" />
+              <rect x="332" y="206" width="136" height="27" rx="3" fill="#fffdf7" stroke="#171815" stroke-width="1.8" />
+              <text x="400" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">(26, F)</text>
+              <line x1="468" y1="219.5" x2="500" y2="219.5" stroke="#78776e" stroke-width="1.8" marker-end="url(#s12-arr-ink)" />
+              <text x="528" y="225" text-anchor="middle" font-size="13.5" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">NULL</text>
+
+              <!-- Buckets 5..10 -->
+              <rect x="44" y="237" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="256" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 05</text>
+              <text x="142" y="256" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <rect x="44" y="268" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="287" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 06</text>
+              <text x="142" y="287" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <rect x="44" y="299" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="318" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 07</text>
+              <text x="142" y="318" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <rect x="44" y="330" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="349" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 08</text>
+              <text x="142" y="349" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <rect x="44" y="361" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="380" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 09</text>
+              <text x="142" y="380" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <rect x="44" y="392" width="76" height="27" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+              <text x="82" y="411" text-anchor="middle" font-size="14" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">桶 10</text>
+              <text x="142" y="411" text-anchor="middle" font-size="15" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+
+              <!-- Right Callout Card: Lookup 33 -->
+              <rect x="572" y="176" width="360" height="244" rx="4" fill="#fffdf7" stroke="#171815" stroke-width="2" />
+              <rect x="572" y="176" width="360" height="40" fill="#171815" />
+              <text x="592" y="202" font-size="15.5" font-weight="800" fill="#f7d447">
+                示例：查找键 33 的过程
+              </text>
+
+              <text x="592" y="246" font-size="14.5" font-weight="700" fill="#171815">
+                1. 计算 33 % 11 = 0，定位到桶 00
+              </text>
+              <text x="592" y="280" font-size="14.5" font-weight="700" fill="#171815">
+                2. 核对 (22, A)：22 ≠ 33，沿指针后移
+              </text>
+              <text x="592" y="314" font-size="14.5" font-weight="800" fill="#15803d">
+                3. 核对 (33, B)：33 == 33，命中返回 B
+              </text>
+
+              <line x1="592" y1="342" x2="912" y2="342" stroke="#aaa99e" stroke-width="1.5" />
+              <text x="592" y="372" font-size="13.5" font-weight="700" fill="#55574c">
+                • 不同桶的链表互不干扰（如桶 02、桶 04）
+              </text>
+              <text x="592" y="398" font-size="13.5" font-weight="700" fill="#55574c">
+                • 仅同一桶内发生碰撞时，才需要沿链比较
+              </text>
+            </svg>
+          </div>
+        </section>
+
+        <!-- 冲突处理 · 方法二：线性探测 -->
+        <section class="slide subdivider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 02</span>
+          </header>
+          <p class="part">METHOD 02</p>
+          <h2>线性探测</h2>
+          <p class="lead">不额外挂链，冲突后在数组里逐格向后找空槽。</p>
+        </section>
+
+        <!-- 第 12 页 · 从槽 0 开始，每次向后找一格 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 线性探测</span>
+          </header>
+          <h2>从槽 0 开始，每次向后找一格</h2>
+          <div class="content">
+            <div class="eq">h(k, i) = (k % 11 + i) % 11</div>
+            <div class="slots">
+              <div class="cell used">
+                <small>00</small>
+                <strong>22</strong>
+              </div>
+              <div class="cell used">
+                <small>01</small>
+                <strong>33</strong>
+              </div>
+              <div class="cell used">
+                <small>02</small>
+                <strong>44</strong>
+              </div>
+              <div class="cell used">
+                <small>03</small>
+                <strong>55</strong>
+              </div>
+              <div class="cell">
+                <small>04</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>05</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>06</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>07</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>08</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>09</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>10</small>
+                <strong>·</strong>
+              </div>
+            </div>
+            <dl>
+              <div>
+                <dt>插入顺序</dt>
+                <dd>22 看槽 0。33 看 0 → 1。44 看 0 → 1 → 2。55 看 0 → 1 → 2 → 3。</dd>
+              </div>
+              <div>
+                <dt>一次聚集</dt>
+                <dd>起点落在槽 0 到 3 的新键都会进入这段连续占用区。到表尾再绕回槽 0。</dd>
+              </div>
+            </dl>
+            <p class="lead">
+              所有记录都存在数组槽位里，这类策略称为开放寻址。图中 · 表示从未使用。
+            </p>
+          </div>
+        </section>
+
+        <!-- 冲突处理 · 方法三：双哈希 -->
+        <section class="slide subdivider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 03</span>
+          </header>
+          <p class="part">METHOD 03</p>
+          <h2>双哈希</h2>
+          <p class="lead">用第二个哈希函数算出步长，同起点立即分流。</p>
+        </section>
+
+        <!-- 第 13 页 · 让键决定下一跳的距离 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>冲突处理 · 双哈希</span>
+          </header>
+          <h2>让键决定下一跳的距离</h2>
+          <div class="content">
+            <div class="eq">h(k, i) = (h₁(k) + i × h₂(k)) % m</div>
+            <dl>
+              <div>
+                <dt>起点 h₁(k)</dt>
+                <dd>第一个哈希函数，决定 i = 0 时的初始槽位（如 k % m），表长 m 决定绕回的位置。</dd>
+              </div>
+              <div>
+                <dt>步长 h₂(k)</dt>
+                <dd>第二个哈希函数，决定每次冲突后的非零步长（如 7 − (k % 7)）。不同键即使同起点，也可以按不同步长分开。</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 14 页 · 四个键从同一个起点出发 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>双哈希手算</span>
+          </header>
+          <h2>四个键从同一个起点出发</h2>
+          <div class="content">
+            <p class="lead">空表长 11，h₁(k) = k % 11，h₂(k) = 7 − (k % 7)。依次插入以下四个键。</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>键</th>
+                  <th>起点</th>
+                  <th>步长</th>
+                  <th>实际查看的槽位</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>22</td>
+                  <td>0</td>
+                  <td>7 − 1 = 6</td>
+                  <td>0</td>
+                </tr>
+                <tr>
+                  <td>33</td>
+                  <td>0</td>
+                  <td>7 − 5 = 2</td>
+                  <td>0 → 2</td>
+                </tr>
+                <tr>
+                  <td>44</td>
+                  <td>0</td>
+                  <td>7 − 2 = 5</td>
+                  <td>0 → 5</td>
+                </tr>
+                <tr>
+                  <td>55</td>
+                  <td>0</td>
+                  <td>7 − 6 = 1</td>
+                  <td>0 → 1</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="slots">
+              <div class="cell used">
+                <small>00</small>
+                <strong>22</strong>
+              </div>
+              <div class="cell used">
+                <small>01</small>
+                <strong>55</strong>
+              </div>
+              <div class="cell used">
+                <small>02</small>
+                <strong>33</strong>
+              </div>
+              <div class="cell">
+                <small>03</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>04</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell used">
+                <small>05</small>
+                <strong>44</strong>
+              </div>
+              <div class="cell">
+                <small>06</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>07</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>08</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>09</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>10</small>
+                <strong>·</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 第 15 页 · 插入 55，各要检查几次？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>双哈希手算</span>
+          </header>
+          <h2>插入 55，各要检查几次？</h2>
+          <div class="content">
+            <svg
+              class="diagram"
+              role="img"
+              aria-label="线性探测与双哈希插入路径对比"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 960 446"
+              width="960"
+              height="446"
+              font-family="'Barlow', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+            >
+              <defs>
+                <marker
+                  id="s15-arr-red"
+                  markerWidth="7"
+                  markerHeight="7"
+                  refX="6"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <path d="M0,1 L6,3.5 L0,6 Z" fill="#b91c1c" />
+                </marker>
+                <marker
+                  id="s15-arr-ink"
+                  markerWidth="7"
+                  markerHeight="7"
+                  refX="6"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <path d="M0,1 L6,3.5 L0,6 Z" fill="#171815" />
+                </marker>
+                <marker
+                  id="s15-arr-green"
+                  markerWidth="7"
+                  markerHeight="7"
+                  refX="6"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <path d="M0,1 L6,3.5 L0,6 Z" fill="#15803d" />
+                </marker>
+              </defs>
+
+              <rect
+                width="960"
+                height="446"
+                rx="4"
+                fill="#f8f7ef"
+                stroke="#171815"
+                stroke-width="2.5"
+              />
+
+              <text
+                x="480"
+                y="34"
+                text-anchor="middle"
+                font-size="19"
+                font-weight="800"
+                fill="#171815"
+              >
+                开放寻址对比：线性探测 vs. 双哈希（依次插入 22、33、44、55，表长 m = 11）
+              </text>
+
+              <!-- Panel 1: Linear Probing -->
+              <rect
+                x="24"
+                y="52"
+                width="912"
+                height="176"
+                rx="4"
+                fill="#fffdf7"
+                stroke="#171815"
+                stroke-width="2"
+              />
+              <text x="44" y="79" font-size="16" font-weight="800" fill="#b91c1c">
+                ① 线性探测：h(k, i) = (h₁(k) + i) % 11 — 步长恒为 1，同起点挤成连续块
+              </text>
+              <text x="44" y="103" font-size="14.5" font-weight="700" fill="#171815">
+                插入 55 检查 4 次（槽 0 → 1 → 2 → 3），新键落入 0~3 都要排到槽 4（一次聚集）
+              </text>
+
+              <g transform="translate(62, 138)">
+                <rect
+                  x="-10"
+                  y="-22"
+                  width="310"
+                  height="66"
+                  rx="3"
+                  fill="#fee2e2"
+                  stroke="#b91c1c"
+                  stroke-dasharray="5,3"
+                  stroke-width="1.8"
+                />
+                <text
+                  x="145"
+                  y="66"
+                  text-anchor="middle"
+                  font-size="13.5"
+                  font-weight="700"
+                  fill="#b91c1c"
+                >
+                  连续占用区（4 连格聚集）
+                </text>
+                <text
+                  x="574"
+                  y="66"
+                  text-anchor="middle"
+                  font-size="14"
+                  font-weight="800"
+                  fill="#b91c1c"
+                >
+                  插入 55：共检查 4 次（0 → 1 → 2 → 3）
+                </text>
+
+                <g>
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" font-weight="700" fill="#171815">槽 0</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="2" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#991b1b">22</text>
+                </g>
+                <g transform="translate(78, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" font-weight="700" fill="#171815">槽 1</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="2" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#991b1b">33</text>
+                </g>
+                <g transform="translate(156, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" font-weight="700" fill="#171815">槽 2</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="2" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#991b1b">44</text>
+                </g>
+                <g transform="translate(234, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" font-weight="800" fill="#b91c1c">槽 3</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#f7d447" stroke="#b91c1c" stroke-width="2.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">55</text>
+                </g>
+                <g transform="translate(312, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 4</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(390, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 5</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(468, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 6</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(546, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 7</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(624, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 8</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(702, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 9</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(780, 0)">
+                  <text x="28" y="-6" text-anchor="middle" font-size="13" fill="#78776e">槽 10</text>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+
+                <path d="M58,19 L76,19" stroke="#b91c1c" stroke-width="2" marker-end="url(#s15-arr-red)" />
+                <path d="M136,19 L154,19" stroke="#b91c1c" stroke-width="2" marker-end="url(#s15-arr-red)" />
+                <path d="M214,19 L232,19" stroke="#b91c1c" stroke-width="2" marker-end="url(#s15-arr-red)" />
+              </g>
+
+              <!-- Panel 2: Double Hashing -->
+              <rect
+                x="24"
+                y="242"
+                width="912"
+                height="184"
+                rx="4"
+                fill="#fffdf7"
+                stroke="#171815"
+                stroke-width="2"
+              />
+              <text x="44" y="269" font-size="16" font-weight="800" fill="#171815">
+                ② 双哈希：h(k, i) = (h₁(k) + i × h₂(k)) % 11 — 步长 h₂(k) = 7 − (k % 7) 因键而异
+              </text>
+              <text x="44" y="292" font-size="14.5" font-weight="800" fill="#15803d">
+                插入 55 仅检查 2 次（槽 0 → 1）· 33、44、55 碰撞后各走各的步长，立即分流
+              </text>
+
+              <g transform="translate(62, 364)">
+                <!-- 55: step +1 -> Slot 1 -->
+                <path
+                  d="M 38,-2 Q 67,-22 96,-2"
+                  fill="none"
+                  stroke="#171815"
+                  stroke-width="2.4"
+                  marker-end="url(#s15-arr-ink)"
+                />
+                <text
+                  x="67"
+                  y="-16"
+                  text-anchor="middle"
+                  font-size="13.5"
+                  font-weight="800"
+                  fill="#171815"
+                  paint-order="stroke"
+                  stroke="#fffdf7"
+                  stroke-width="5"
+                  stroke-linejoin="round"
+                >
+                  55: +1
+                </text>
+
+                <!-- 33: step +2 -> Slot 2 -->
+                <path
+                  d="M 28,-2 Q 106,-58 184,-2"
+                  fill="none"
+                  stroke="#15803d"
+                  stroke-width="2"
+                  marker-end="url(#s15-arr-green)"
+                />
+                <text
+                  x="138"
+                  y="-24"
+                  text-anchor="middle"
+                  font-size="13.5"
+                  font-weight="800"
+                  fill="#15803d"
+                  paint-order="stroke"
+                  stroke="#fffdf7"
+                  stroke-width="5"
+                  stroke-linejoin="round"
+                >
+                  33: +2
+                </text>
+
+                <!-- 44: step +5 -> Slot 5 -->
+                <path
+                  d="M 18,-2 Q 216,-94 414,-2"
+                  fill="none"
+                  stroke="#15803d"
+                  stroke-width="2"
+                  marker-end="url(#s15-arr-green)"
+                />
+                <text
+                  x="278"
+                  y="-46"
+                  text-anchor="middle"
+                  font-size="13.5"
+                  font-weight="800"
+                  fill="#15803d"
+                  paint-order="stroke"
+                  stroke="#fffdf7"
+                  stroke-width="5"
+                  stroke-linejoin="round"
+                >
+                  44: 步长 +5（一次跳过拥挤区）
+                </text>
+
+                <!-- Slots -->
+                <g>
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#171815" stroke="#171815" stroke-width="2" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#f7d447">22</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#171815">槽 0</text>
+                </g>
+                <g transform="translate(78, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#f7d447" stroke="#171815" stroke-width="2.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">55</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" font-weight="800" fill="#171815">槽 1</text>
+                </g>
+                <g transform="translate(156, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#15803d">33</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#171815">槽 2</text>
+                </g>
+                <g transform="translate(234, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 3</text>
+                </g>
+                <g transform="translate(312, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 4</text>
+                </g>
+                <g transform="translate(390, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#15803d">44</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#171815">槽 5</text>
+                </g>
+                <g transform="translate(468, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 6</text>
+                </g>
+                <g transform="translate(546, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 7</text>
+                </g>
+                <g transform="translate(624, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 8</text>
+                </g>
+                <g transform="translate(702, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 9</text>
+                </g>
+                <g transform="translate(780, 0)">
+                  <rect x="0" y="0" width="56" height="38" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="28" y="25" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="28" y="54" text-anchor="middle" font-size="13" fill="#78776e">槽 10</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <!-- 第 16 页 · 继续插入 66 和 99 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>双哈希手算</span>
+          </header>
+          <h2>继续插入 66 和 99</h2>
+          <div class="content">
+            <p class="lead">沿用上一张表。先算出每个键的步长，再写出检查顺序。</p>
+            <div class="eq">h₁(k) = k % 11　　 h₂(k) = 7 − (k % 7)</div>
+            <details>
+              <summary>核对探测轨迹</summary>
+              <dl>
+                <div>
+                  <dt>66</dt>
+                  <dd>步长 4，检查槽 0 → 4，放入槽 4。</dd>
+                </div>
+                <div>
+                  <dt>99</dt>
+                  <dd>步长 6，检查槽 0 → 6，放入槽 6。若槽 6 已被占，下一跳为 12 % 11 = 1。</dd>
+                </div>
+              </dl>
+            </details>
+            <div class="slots">
+              <div class="cell used">
+                <small>00</small>
+                <strong>22</strong>
+              </div>
+              <div class="cell used">
+                <small>01</small>
+                <strong>55</strong>
+              </div>
+              <div class="cell used">
+                <small>02</small>
+                <strong>33</strong>
+              </div>
+              <div class="cell">
+                <small>03</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell pending">
+                <small>04</small>
+                <strong class="placeholder">·</strong>
+                <strong class="reveal">66</strong>
+              </div>
+              <div class="cell used">
+                <small>05</small>
+                <strong>44</strong>
+              </div>
+              <div class="cell pending">
+                <small>06</small>
+                <strong class="placeholder">·</strong>
+                <strong class="reveal">99</strong>
+              </div>
+              <div class="cell">
+                <small>07</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>08</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>09</small>
+                <strong>·</strong>
+              </div>
+              <div class="cell">
+                <small>10</small>
+                <strong>·</strong>
+              </div>
+            </div>
+            <p class="lead">查找必须复用插入时的起点与步长，每到一个已占槽都要核对键。</p>
+          </div>
+        </section>
+
+        <!-- 第 18 页 · 一个周期能访问多少个槽位？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>步长与互质</span>
+          </header>
+          <h2>一个周期能访问多少个槽位？</h2>
+          <div class="content">
+            <div class="eq">可访问槽位数 = m / gcd(m, step)</div>
+            <dl>
+              <div>
+                <dt>表长 12，步长 8</dt>
+                <dd>gcd(12, 8) = 4，只能访问 0 → 8 → 4，第四次又回到 0。</dd>
+              </div>
+              <div>
+                <dt>表长 11，步长 3</dt>
+                <dd>
+                  gcd(11, 3) = 1。从槽 2 出发，依次经过 5、8、0、3、6、9、1、4、7、10，再回到 2。
+                </dd>
+              </div>
+              <div>
+                <dt>选择步长</dt>
+                <dd>
+                  让有效步长落在 1 到 m − 1，并与表长互质。这样重复前恰好能检查全部 m 个槽位。
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 17 页 · 还有空槽，为什么会绕回原点？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>步长与互质</span>
+          </header>
+          <h2>还有空槽，为什么会绕回原点？</h2>
+          <div class="content">
+            <svg
+              class="diagram"
+              role="img"
+              aria-label="表长 12 步长 8 形成短环；表长 11 步长 3 遍历全表"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 960 444"
+              width="960"
+              height="444"
+              font-family="'Barlow', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+            >
+              <defs>
+                <marker
+                  id="s17-arr-bad"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,1 L7,4 L0,7 Z" fill="#b91c1c" />
+                </marker>
+                <marker
+                  id="s17-arr-good"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,1 L7,4 L0,7 Z" fill="#15803d" />
+                </marker>
+              </defs>
+
+              <rect
+                width="960"
+                height="444"
+                rx="4"
+                fill="#f8f7ef"
+                stroke="#171815"
+                stroke-width="2.5"
+              />
+              <text
+                x="480"
+                y="34"
+                text-anchor="middle"
+                font-size="19"
+                font-weight="800"
+                fill="#171815"
+              >
+                为什么双哈希步长必须与表长 m 互质？—— 环形槽位探测轨迹对比
+              </text>
+
+              <!-- Left Card: Non-coprime (m=12, step=8) -->
+              <rect
+                x="24"
+                y="54"
+                width="444"
+                height="366"
+                rx="4"
+                fill="#fffdf7"
+                stroke="#171815"
+                stroke-width="2"
+              />
+              <text x="246" y="84" text-anchor="middle" font-size="16" font-weight="800" fill="#b91c1c">
+                ✕ 反例：m = 12，起点 = 0，步长 = 8
+              </text>
+              <text x="246" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#171815">
+                gcd(12, 8) = 4 ≠ 1 → 仅能访问 12 / 4 = 3 个槽位
+              </text>
+
+              <g transform="translate(246, 244)">
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="96"
+                  fill="none"
+                  stroke="#aaa99e"
+                  stroke-width="2"
+                  stroke-dasharray="4,4"
+                />
+
+                <!-- Triangle Cycle: 0 (0,-96) -> 8 (-83.1, 48) -> 4 (83.1, 48) -> 0 -->
+                <line x1="-10" y1="-78" x2="-69" y2="31" stroke="#b91c1c" stroke-width="2.5" marker-end="url(#s17-arr-bad)" />
+                <line x1="-64" y1="48" x2="62" y2="48" stroke="#b91c1c" stroke-width="2.5" marker-end="url(#s17-arr-bad)" />
+                <line x1="72" y1="30" x2="10" y2="-78" stroke="#b91c1c" stroke-width="2.5" marker-end="url(#s17-arr-bad)" />
+
+                <circle cx="0" cy="-96" r="18" fill="#b91c1c" stroke="#171815" stroke-width="2" />
+                <text x="0" y="-91" text-anchor="middle" font-size="14" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#fffdf7">0</text>
+
+                <circle cx="48" cy="-83.1" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="48" y="-78.1" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">1</text>
+
+                <circle cx="83.1" cy="-48" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="83.1" y="-43" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">2</text>
+
+                <circle cx="96" cy="0" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="96" y="5" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">3</text>
+
+                <circle cx="83.1" cy="48" r="17" fill="#fee2e2" stroke="#b91c1c" stroke-width="2.5" />
+                <text x="83.1" y="53" text-anchor="middle" font-size="14" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#991b1b">4</text>
+
+                <circle cx="48" cy="83.1" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="48" y="88.1" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">5</text>
+
+                <circle cx="0" cy="96" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="0" y="101" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">6</text>
+
+                <circle cx="-48" cy="83.1" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="-48" y="88.1" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">7</text>
+
+                <circle cx="-83.1" cy="48" r="17" fill="#fee2e2" stroke="#b91c1c" stroke-width="2.5" />
+                <text x="-83.1" y="53" text-anchor="middle" font-size="14" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#991b1b">8</text>
+
+                <circle cx="-96" cy="0" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="-96" y="5" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">9</text>
+
+                <circle cx="-83.1" cy="-48" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="-83.1" y="-43" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">10</text>
+
+                <circle cx="-48" cy="-83.1" r="15" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                <text x="-48" y="-78.1" text-anchor="middle" font-size="13" font-family="'IBM Plex Mono', Menlo, monospace" fill="#55574c">11</text>
+              </g>
+
+              <text x="246" y="380" text-anchor="middle" font-size="14" font-weight="800" fill="#b91c1c">
+                轨迹锁死在 0 → 8 → 4 → 0 循环中
+              </text>
+              <text x="246" y="403" text-anchor="middle" font-size="13.5" fill="#55574c">
+                其余 9 个灰色空槽永远无法被探测到
+              </text>
+
+              <!-- Right Card: Coprime (m=11, start=2, step=3) -->
+              <rect
+                x="492"
+                y="54"
+                width="444"
+                height="366"
+                rx="4"
+                fill="#fffdf7"
+                stroke="#171815"
+                stroke-width="2"
+              />
+              <text x="714" y="84" text-anchor="middle" font-size="16" font-weight="800" fill="#15803d">
+                ✓ 正例：m = 11，起点 = 2，步长 = 3
+              </text>
+              <text x="714" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#171815">
+                gcd(11, 3) = 1（互质）→ 走遍全部 11 个槽位
+              </text>
+
+              <g transform="translate(714, 244)">
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="96"
+                  fill="none"
+                  stroke="#aaa99e"
+                  stroke-width="2"
+                  stroke-dasharray="4,4"
+                />
+
+                <polygon
+                  points="87.3,-39.9 27.0,92.1 -95.0,13.7 0,-96 95.0,13.7 -27.0,92.1 -87.3,-39.9 51.9,-80.8 72.6,62.9 -72.6,62.9 -51.9,-80.8"
+                  fill="none"
+                  stroke="#15803d"
+                  stroke-width="2"
+                  stroke-opacity="0.75"
+                />
+
+                <line
+                  x1="79.4"
+                  y1="-22.6"
+                  x2="34.9"
+                  y2="74.8"
+                  stroke="#171815"
+                  stroke-width="2.6"
+                  marker-end="url(#s17-arr-good)"
+                />
+
+                <circle cx="0" cy="-96" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="0" y="-91" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">0</text>
+
+                <circle cx="51.9" cy="-80.8" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="51.9" y="-75.8" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">1</text>
+
+                <circle cx="87.3" cy="-39.9" r="18" fill="#f7d447" stroke="#171815" stroke-width="2.5" />
+                <text x="87.3" y="-34.9" text-anchor="middle" font-size="14" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">2</text>
+
+                <circle cx="95.0" cy="13.7" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="95.0" y="18.7" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">3</text>
+
+                <circle cx="72.6" cy="62.9" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="72.6" y="67.9" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">4</text>
+
+                <circle cx="27.0" cy="92.1" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="27.0" y="97.1" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">5</text>
+
+                <circle cx="-27.0" cy="92.1" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="-27.0" y="97.1" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">6</text>
+
+                <circle cx="-72.6" cy="62.9" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="-72.6" y="67.9" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">7</text>
+
+                <circle cx="-95.0" cy="13.7" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="-95.0" y="18.7" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">8</text>
+
+                <circle cx="-87.3" cy="-39.9" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="-87.3" y="-34.9" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">9</text>
+
+                <circle cx="-51.9" cy="-80.8" r="16" fill="#dcfce7" stroke="#15803d" stroke-width="2" />
+                <text x="-51.9" y="-75.8" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#14532d">10</text>
+              </g>
+
+              <text x="714" y="380" text-anchor="middle" font-size="13.5" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#15803d">
+                2 → 5 → 8 → 0 → 3 → 6 → 9 → 1 → 4 → 7 → 10
+              </text>
+              <text x="714" y="403" text-anchor="middle" font-size="13.5" fill="#55574c">
+                只要表中还有空位，就一定能找到
+              </text>
+            </svg>
+          </div>
+        </section>
+
+        <!-- 分隔页 · 查找与删除 -->
+        <section class="slide subdivider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>开放寻址</span>
+          </header>
+          <p class="part">LOOKUP &amp; DELETION</p>
+          <h2>查找与删除</h2>
+          <p class="lead">查找什么时候可以停？删掉一条记录后，怎样让其他键仍然找得到？</p>
+        </section>
+
+        <!-- 第 19 页 · 沿着探测路径，什么时候停？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>查找与删除</span>
+          </header>
+          <h2>沿着探测路径，什么时候停？</h2>
+          <div class="content">
+            <table>
+              <thead>
+                <tr>
+                  <th>当前情况</th>
+                  <th>查找动作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>槽内的 Key 与目标相等</td>
+                  <td>命中，返回对应 Value</td>
+                </tr>
+                <tr>
+                  <td>从未使用的空槽 ·</td>
+                  <td>停止，目标不存在</td>
+                </tr>
+                <tr>
+                  <td>其他 Key 或删除标记 DEL</td>
+                  <td>沿相同步长继续探测</td>
+                </tr>
+                <tr>
+                  <td>已经探测 m 次仍未命中</td>
+                  <td>停止，返回不存在</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="lead">
+              从未使用的空槽能证明目标不存在，因为插入时若先遇到它，就会在那里落位。
+            </p>
+          </div>
+        </section>
+
+        <!-- 第 20 页 · 删掉 22 之后，还能找到 44 吗？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>查找与删除</span>
+          </header>
+          <h2>删掉 22 之后，还能找到 44 吗？</h2>
+          <div class="content">
+            <svg
+              class="diagram"
+              role="img"
+              aria-label="清空槽 0 导致查找 44 提前终止；标记 DEL 后仍可抵达槽 5"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 960 364"
+              width="960"
+              height="364"
+              font-family="'Barlow', 'PingFang SC', 'Microsoft YaHei', sans-serif"
+            >
+              <defs>
+                <marker
+                  id="s20-arr-ok"
+                  markerWidth="8"
+                  markerHeight="8"
+                  refX="7"
+                  refY="4"
+                  orient="auto"
+                >
+                  <path d="M0,1 L7,4 L0,7 Z" fill="#15803d" />
+                </marker>
+              </defs>
+
+              <rect
+                width="960"
+                height="364"
+                rx="4"
+                fill="#f8f7ef"
+                stroke="#171815"
+                stroke-width="2.5"
+              />
+              <text x="480" y="34" text-anchor="middle" font-size="19" font-weight="800" fill="#171815">
+                开放寻址中的删除：为什么需要“墓碑（DEL）”删除标记？
+              </text>
+
+              <!-- Scenario 1: Direct Empty (Wrong) -->
+              <rect
+                x="24"
+                y="52"
+                width="912"
+                height="134"
+                rx="4"
+                fill="#fffdf7"
+                stroke="#171815"
+                stroke-width="2"
+              />
+              <text x="44" y="79" font-size="15" font-weight="800" fill="#b91c1c">
+                ✕ 错误做法：删除槽 0 的 22 后直接清空（·）→ 查找 44（起点 0，步长 5）在槽 0 断链
+              </text>
+
+              <g transform="translate(44, 124)">
+                <g>
+                  <text x="32" y="-7" text-anchor="middle" font-size="13" font-weight="800" fill="#b91c1c">槽 0（清空）</text>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#fee2e2" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5,3" />
+                  <text x="32" y="26" text-anchor="middle" font-size="15" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#b91c1c">· (空)</text>
+                </g>
+                <g transform="translate(88, 0)">
+                  <text x="32" y="-7" text-anchor="middle" font-size="13" fill="#55574c">槽 1</text>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">55</text>
+                </g>
+                <g transform="translate(176, 0)">
+                  <text x="32" y="-7" text-anchor="middle" font-size="13" fill="#55574c">槽 2</text>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">33</text>
+                </g>
+                <g transform="translate(264, 0)">
+                  <text x="32" y="-7" text-anchor="middle" font-size="13" fill="#78776e">槽 3</text>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#f8f7ef" stroke="#aaa99e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(352, 0)">
+                  <text x="32" y="-7" text-anchor="middle" font-size="13" fill="#78776e">槽 4</text>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#f8f7ef" stroke="#aaa99e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                </g>
+                <g transform="translate(440, 0)">
+                  <text x="32" y="-7" text-anchor="middle" font-size="13" font-weight="800" fill="#171815">槽 5（目标）</text>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#f7d447" stroke="#171815" stroke-width="2" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">44</text>
+                </g>
+
+                <text x="530" y="25" font-size="14" font-weight="800" fill="#b91c1c">
+                  ⚡ 探测槽 0 看到空槽 · ，提前停止并误判 44 不存在
+                </text>
+              </g>
+
+              <!-- Scenario 2: Tombstone (Correct) -->
+              <rect
+                x="24"
+                y="200"
+                width="912"
+                height="144"
+                rx="4"
+                fill="#fffdf7"
+                stroke="#171815"
+                stroke-width="2"
+              />
+              <text x="44" y="227" font-size="15" font-weight="800" fill="#15803d">
+                ✓ 正确做法：留下删除标记 DEL → 跨过墓碑按步长 +5 继续探测，在槽 5 命中 44
+              </text>
+
+              <g transform="translate(44, 276)">
+                <path
+                  d="M 32,-4 Q 252,-46 472,-4"
+                  fill="none"
+                  stroke="#15803d"
+                  stroke-width="2.4"
+                  marker-end="url(#s20-arr-ok)"
+                />
+                <text
+                  x="252"
+                  y="-28"
+                  text-anchor="middle"
+                  font-size="13.5"
+                  font-weight="800"
+                  fill="#15803d"
+                  paint-order="stroke"
+                  stroke="#fffdf7"
+                  stroke-width="5"
+                  stroke-linejoin="round"
+                >
+                  遇到 DEL 不停，按步长 +5 继续跳到槽 5
+                </text>
+
+                <g>
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#f7d447" stroke="#171815" stroke-width="2.2" />
+                  <text x="32" y="26" text-anchor="middle" font-size="15" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">DEL</text>
+                  <text x="32" y="56" text-anchor="middle" font-size="13" font-weight="800" fill="#171815">槽 0（墓碑）</text>
+                </g>
+                <g transform="translate(88, 0)">
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">55</text>
+                  <text x="32" y="56" text-anchor="middle" font-size="13" fill="#55574c">槽 1</text>
+                </g>
+                <g transform="translate(176, 0)">
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#ecebe2" stroke="#78776e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-weight="700" font-family="'IBM Plex Mono', Menlo, monospace" fill="#171815">33</text>
+                  <text x="32" y="56" text-anchor="middle" font-size="13" fill="#55574c">槽 2</text>
+                </g>
+                <g transform="translate(264, 0)">
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#f8f7ef" stroke="#aaa99e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="32" y="56" text-anchor="middle" font-size="13" fill="#78776e">槽 3</text>
+                </g>
+                <g transform="translate(352, 0)">
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#f8f7ef" stroke="#aaa99e" stroke-width="1.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-family="'IBM Plex Mono', Menlo, monospace" fill="#78776e">·</text>
+                  <text x="32" y="56" text-anchor="middle" font-size="13" fill="#78776e">槽 4</text>
+                </g>
+                <g transform="translate(440, 0)">
+                  <rect x="0" y="0" width="64" height="40" rx="3" fill="#dcfce7" stroke="#15803d" stroke-width="2.5" />
+                  <text x="32" y="26" text-anchor="middle" font-size="16" font-weight="800" font-family="'IBM Plex Mono', Menlo, monospace" fill="#15803d">44</text>
+                  <text x="32" y="56" text-anchor="middle" font-size="13" font-weight="800" fill="#15803d">槽 5（命中）</text>
+                </g>
+
+                <text x="530" y="25" font-size="14" font-weight="800" fill="#15803d">
+                  ✔ 探测不断链，在槽 5 核对 Key 相等并返回
+                </text>
+              </g>
+            </svg>
+            <p class="lead">
+              查找遇到 DEL 必须继续探测；插入时先记下首个 DEL，继续探明目标键不存在后再复用它，防止重复插入。
+            </p>
+          </div>
+        </section>
+
+        <!-- 话题 05 · 容量与性能 -->
+        <section class="slide divider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>话题 05</span>
+          </header>
+          <p class="part">PART 05</p>
+          <h2>容量与性能</h2>
+          <p class="lead">装载因子、扩容重算与期望 O(1) 的前提。</p>
+        </section>
+
+        <!-- 第 21 页 · 装载因子衡量表有多满 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>容量与性能</span>
+          </header>
+          <h2>装载因子衡量表有多满</h2>
+          <div class="content">
+            <div class="eq">α = n / m　　　4 条记录 / 11 个槽位 ≈ 0.36</div>
+            <dl>
+              <div>
+                <dt>拉链法</dt>
+                <dd>α 表示平均链长，一个桶能存多条记录，因此 α 可以大于 1。</dd>
+              </div>
+              <div>
+                <dt>开放寻址</dt>
+                <dd>每个槽位最多一条有效记录，α ≤ 1。空槽减少或 DEL 累积，通常都会延长探测。</dd>
+              </div>
+              <div>
+                <dt>何时扩容</dt>
+                <dd>例如开放寻址可在 α 约为 0.7 时扩容。实际阈值由实现和工作负载决定。</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 22 页 · 表长变了，22 应该搬到哪里？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>容量与性能</span>
+          </header>
+          <h2>表长变了，22 应该搬到哪里？</h2>
+          <div class="content">
+            <div class="eq">22 % 11 = 0 → 22 % 23 = 22　｜　33 % 11 = 0 → 33 % 23 = 10</div>
+            <dl>
+              <div>
+                <dt>分配</dt>
+                <dd>创建更大的空表，本例从 11 个槽扩到 23 个槽。</dd>
+              </div>
+              <div>
+                <dt>重算</dt>
+                <dd>用新表长计算每个有效键的起点，双哈希还需确保步长与新表长互质。</dd>
+              </div>
+              <div>
+                <dt>重插</dt>
+                <dd>按新的探测规则逐条插入有效记录，旧表的 DEL 可以丢弃。这个过程称为 rehash。</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 第 23 页 · 期望 O(1) 有哪些前提？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>容量与性能</span>
+          </header>
+          <h2>期望 O(1) 有哪些前提？</h2>
+          <div class="content">
+            <table>
+              <thead>
+                <tr>
+                  <th>情形</th>
+                  <th>时间成本</th>
+                  <th>成立条件或原因</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>查找</td>
+                  <td>期望 O(1)</td>
+                  <td>分布均匀、装载合理，键哈希和比较按常数计</td>
+                </tr>
+                <tr>
+                  <td>插入</td>
+                  <td>期望摊还 O(1)</td>
+                  <td>按比例扩容，迁移开销分摊到多次插入</td>
+                </tr>
+                <tr>
+                  <td>一次扩容</td>
+                  <td>通常 O(n)</td>
+                  <td>需要重新插入 n 条有效记录</td>
+                </tr>
+                <tr>
+                  <td>极端碰撞</td>
+                  <td>最坏 O(n)</td>
+                  <td>查找可能检查一整条长链或探测路径</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="lead">若键是长度 L 的字符串，首次逐字符计算哈希还需 O(L)。</p>
+          </div>
+        </section>
+
+        <!-- 话题 06 · 标准库与实践 -->
+        <section class="slide divider">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>话题 06</span>
+          </header>
+          <p class="part">PART 06</p>
+          <h2>标准库与实践</h2>
+          <p class="lead">映射与集合的选择、可哈希键与遍历顺序。</p>
+        </section>
+
+        <!-- 第 24 页 · 查值用映射，判存用集合 -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>标准库</span>
+          </header>
+          <h2>查值用映射，判存用集合</h2>
+          <div class="content">
+            <table>
+              <thead>
+                <tr>
+                  <th>语言</th>
+                  <th>映射 / 集合</th>
+                  <th>常见实现</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>C++</td>
+                  <td>
+                    std::unordered_map
+                    <br />
+                    std::unordered_set
+                  </td>
+                  <td>常见实现使用桶与链式结构</td>
+                </tr>
+                <tr>
+                  <td>Python</td>
+                  <td>dict / set</td>
+                  <td>CPython 使用开放寻址。Python 3.7 起 dict 保留插入顺序</td>
+                </tr>
+                <tr>
+                  <td>Java</td>
+                  <td>HashMap / HashSet</td>
+                  <td>
+                    OpenJDK 8+ 使用链式桶，长链在表容量足够时可树化（容量门槛 64，树化阈值 8）
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="lead">用集合去重，用映射按键查询、累计次数或缓存结果。</p>
+          </div>
+        </section>
+
+        <!-- 第 25 页 · 什么样的对象适合当键？ -->
+        <section class="slide">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>标准库</span>
+          </header>
+          <h2>什么样的对象适合当键？</h2>
+          <div class="content">
+            <div class="eq">k₁ == k₂　 ⇒　 hash(k₁) == hash(k₂)</div>
+            <dl>
+              <div>
+                <dt>稳定性</dt>
+                <dd>
+                  键在表内期间，参与哈希和相等比较的状态应保持稳定。Python 的 str、int
+                  和元素均可哈希的 tuple 可以作键，list 不可哈希。
+                </dd>
+              </div>
+              <div>
+                <dt>自定义对象</dt>
+                <dd>
+                  C++ 为键提供相容的哈希函数和相等比较。Java 自定义 equals() 时应同时实现相容的
+                  hashCode()。
+                </dd>
+              </div>
+              <div>
+                <dt>遍历顺序</dt>
+                <dd>
+                  插入顺序与按键排序是两种语义。需要按键有序遍历时，可用 C++ std::map 或 Java
+                  TreeMap。
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 结束页 · 感谢聆听 -->
+        <section class="slide last">
+          <header>
+            <b>CPU / HASH TABLES</b>
+            <span>CPU 周常分享</span>
+          </header>
+          <h1 style="font-size: 142px; line-height: 1.06; margin: 230px 0 36px;">感谢聆听</h1>
+          <p class="lead">欢迎提问与交流</p>
+        </section>
+        <nav aria-label="幻灯片导航">
+          <span id="progress"></span>
+          <div>
+            <span id="count"></span>
+            <select id="picker" aria-label="跳转到幻灯片">
+              <option value="0">01　从 Git Commit 到哈希表</option>
+              <option value="1">02　PART 01 · 键与值</option>
+              <option value="2">03　十万份成绩，怎样查到 Alice 的分数？</option>
+              <option value="3">04　PART 02 · Git 与内容寻址</option>
+              <option value="4">05　Git 怎样标识一次提交？</option>
+              <option value="5">06　给 hello 加上一个感叹号</option>
+              <option value="6">07　什么是哈希表？</option>
+              <option value="7">08　哈希表把查找缩小到候选位置</option>
+              <option value="8">09　PART 03 · 字符串哈希与碰撞</option>
+              <option value="9">10　怎样让字符的位置影响结果？</option>
+              <option value="10">11　手算 cat 会落入哪个桶</option>
+              <option value="11">12　哪些单词会撞进同一个桶？</option>
+              <option value="12">13　从八个单词推广到任意键</option>
+              <option value="13">14　PART 04 · 哈希冲突处理</option>
+              <option value="14">15　处理哈希冲突的三种方法</option>
+              <option value="15">16　METHOD 01 · 拉链法</option>
+              <option value="16">17　桶 0 里可以存下三个键</option>
+              <option value="17">18　拉链法图示：每个桶挂一条链表</option>
+              <option value="18">19　METHOD 02 · 线性探测</option>
+              <option value="19">20　从槽 0 开始，每次向后找一格</option>
+              <option value="20">21　METHOD 03 · 双哈希</option>
+              <option value="21">22　让键决定下一跳的距离</option>
+              <option value="22">23　四个键从同一个起点出发</option>
+              <option value="23">24　插入 55，各要检查几次？</option>
+              <option value="24">25　继续插入 66 和 99</option>
+              <option value="25">26　一个周期能访问多少个槽位？</option>
+              <option value="26">27　还有空槽，为什么会绕回原点？</option>
+              <option value="27">28　查找与删除</option>
+              <option value="28">29　沿着探测路径，什么时候停？</option>
+              <option value="29">30　删掉 22 之后，还能找到 44 吗？</option>
+              <option value="30">31　PART 05 · 容量与性能</option>
+              <option value="31">32　装载因子衡量表有多满</option>
+              <option value="32">33　表长变了，22 应该搬到哪里？</option>
+              <option value="33">34　期望 O(1) 有哪些前提？</option>
+              <option value="34">35　PART 06 · 标准库与实践</option>
+              <option value="35">36　查值用映射，判存用集合</option>
+              <option value="36">37　什么样的对象适合当键？</option>
+              <option value="37">38　感谢聆听</option>
+            </select>
+          </div>
+          <div>
+            <button id="edit" title="按 E 编辑文字">编辑</button>
+            <button id="save" hidden>保存副本</button>
+            <button id="previous" aria-label="上一页">←</button>
+            <button id="next" aria-label="下一页">→</button>
+          </div>
+        </nav>
+      </div>
+    </main>
+    <script>
+      /* === Fixed-stage navigation === */
+      const stage = document.querySelector(".deck-stage");
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const picker = document.querySelector("#picker");
+      const previous = document.querySelector("#previous");
+      const next = document.querySelector("#next");
+      let index = 0;
+      function resize() {
+        const scale = Math.min(innerWidth / 1920, innerHeight / 1080);
+        stage.style.transform = `translate(${(innerWidth - 1920 * scale) / 2}px,${(innerHeight - 1080 * scale) / 2}px) scale(${scale})`;
+      }
+      function show(target, syncHash = true) {
+        index = Math.min(slides.length - 1, Math.max(0, target));
+        slides.forEach((slide, i) => {
+          slide.classList.toggle("active", i === index);
+          slide.inert = i !== index;
+        });
+        picker.value = index;
+        previous.disabled = index === 0;
+        next.disabled = index === slides.length - 1;
+        document.querySelector("#count").textContent = index + 1 + " / " + slides.length;
+        document.querySelector("#progress").style.width = ((index + 1) / slides.length) * 100 + "%";
+        if (syncHash) history.replaceState(null, "", "#" + (index + 1));
+      }
+      function slideIndexFromHash() {
+        const page = Number.parseInt(location.hash.slice(1), 10);
+        return Number.isFinite(page) && page >= 1 ? page - 1 : 0;
+      }
+      previous.onclick = () => show(index - 1);
+      next.onclick = () => show(index + 1);
+      picker.onchange = () => {
+        show(Number(picker.value));
+        picker.blur();
+      };
+      window.addEventListener("resize", resize);
+      window.addEventListener("hashchange", () => show(slideIndexFromHash(), false));
+      window.addEventListener("keydown", (event) => {
+        if (
+          editing ||
+          event.target.closest("select") ||
+          (event.key === " " && event.target.closest("button,summary"))
+        )
+          return;
+        const positions = {
+          ArrowRight: index + 1,
+          ArrowLeft: index - 1,
+          " ": index + 1,
+          PageDown: index + 1,
+          PageUp: index - 1,
+          Home: 0,
+          End: slides.length - 1,
+        };
+        if (Object.hasOwn(positions, event.key)) {
+          event.preventDefault();
+          show(positions[event.key]);
+        }
+      });
+      let touchX, touchY;
+      stage.addEventListener(
+        "touchstart",
+        (e) => {
+          touchX = e.touches[0].clientX;
+          touchY = e.touches[0].clientY;
+        },
+        { passive: true },
+      );
+      stage.addEventListener("touchend", (e) => {
+        const dx = e.changedTouches[0].clientX - touchX,
+          dy = e.changedTouches[0].clientY - touchY;
+        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) show(index + (dx < 0 ? 1 : -1));
+      });
+      /* === Polynomial-hash experiment === */
+      const datasets = {
+        words: ["apple", "banana", "cat", "coat", "dog", "book", "tree", "code"],
+        aabb: ["Aa", "BB", "cat", "coat", "dog", "book", "tree", "code"],
+      };
+      function renderExperiment() {
+        const base = Number(document.querySelector("#base").value);
+        const buckets = Number(document.querySelector("#buckets").value);
+        const dataset = document.querySelector("#dataset").value;
+        const keys = datasets[dataset] || datasets.words;
+        const groups = new Map();
+        const records = keys.map((key) => {
+          let hash = 0;
+          for (const char of key) hash = hash * base + char.charCodeAt(0);
+          const slot = hash % buckets;
+          if (!groups.has(slot)) groups.set(slot, []);
+          groups.get(slot).push(key);
+          return { key, hash, slot };
+        });
+        const rows = records.map(
+          ({ key, hash, slot }) =>
+            `<tr><td>${key}</td><td>${hash}</td><td class="${groups.get(slot).length > 1 ? "collision" : ""}">${slot}</td></tr>`,
+        );
+        document.querySelector("#results").innerHTML =
+          "<table><tr><th>Key</th><th>H(s)</th><th>桶下标</th></tr>" + rows.join("") + "</table>";
+        const repeated = [...groups].filter(([, keys]) => keys.length > 1);
+        document.querySelector("#pairs").innerHTML =
+          repeated.map(([slot, keys]) => `桶 <b>${slot}</b>　${keys.join("、")}`).join("<br>") ||
+          "每个键都落在不同的桶。";
+      }
+      document.querySelectorAll(".lab select").forEach((control) => {
+        control.onchange = () => {
+          renderExperiment();
+          control.blur();
+        };
+      });
+      /* === Inline text editing and portable export === */
+      let editing = false;
+      const editButton = document.querySelector("#edit");
+      const saveButton = document.querySelector("#save");
+      function toggleEditing() {
+        editing = !editing;
+        document
+          .querySelectorAll("h1,h2,.lead,dt,dd,pre,.eq,th,td")
+          .forEach((node) => (node.contentEditable = editing ? "true" : "false"));
+        editButton.textContent = editing ? "结束编辑" : "编辑";
+        saveButton.hidden = !editing;
+      }
+      function saveCopy() {
+        const copy = document.documentElement.cloneNode(true);
+        copy
+          .querySelectorAll("[contenteditable]")
+          .forEach((node) => node.removeAttribute("contenteditable"));
+        copy.querySelector("#edit").textContent = "编辑";
+        copy.querySelector("#save").hidden = true;
+        const blob = new Blob(["<!doctype html>\n", copy.outerHTML], { type: "text/html" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "hash-table-slides.html";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+      }
+      editButton.onclick = toggleEditing;
+      saveButton.onclick = saveCopy;
+      window.addEventListener("keydown", (event) => {
+        if (editing && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+          event.preventDefault();
+          saveCopy();
+        }
+        if (!editing && event.key.toLowerCase() === "e" && !event.ctrlKey && !event.metaKey)
+          toggleEditing();
+        if (editing && event.key === "Escape") toggleEditing();
+      });
+      resize();
+      show(slideIndexFromHash());
+      renderExperiment();
+    </script>
+  </body>
+</html>
